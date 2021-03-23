@@ -59,54 +59,8 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 //=================================================================|
-//                      DEMO SITE POST ROUTE
+//                      DEMO PAGE RENDERER
 //-----------------------------------------------------------------|
-app.post("/login", (req, res) => {
-  const user = new User({
-    username: req.body.username,
-    password: req.body.password
-  });
-
-  //this function came from passport.
-  req.login(user, (err) => {
-    if (!err) {
-      passport.authenticate("local")(req, res, () => {
-        res.redirect("/private");
-        // console.log(req.isAuthenticated() + " -- at register");
-      });
-    } else {
-      res.render("login", {
-        userAlreadyExisted: "Invalid username or passward.",
-        pageTitle: "Login Page",
-        username: req.session.passport.user,
-        authorized: req.isAuthenticated()
-      });
-    }
-  });
-});
-
-app.post("/register", (req, res) => {
-  // This function came from passport mongoose
-  User.register({
-    username: req.body.username
-  }, req.body.password, (err, user) => {
-    if (!err) {
-      passport.authenticate("local")(req, res, () => {
-        res.redirect("/private");
-        // console.log(req.isAuthenticated() + " -- at register");
-      });
-    } else {
-      console.log(err);
-      res.render("register", {
-        userAlreadyExisted: "Something went worng, please try again...",
-        pageTitle: "Registration",
-        username: req.session.passport.user,
-        authorized: req.isAuthenticated()
-      });
-    }
-  });
-});
-
 function renderSettingPage(req, res, renderMessage){
   res.render("settings", {
     userAlreadyExisted: renderMessage,
@@ -124,6 +78,67 @@ function renderPrivatePage(req ,res){
   });
 }
 
+function renderLoginPage(req, res, renderMessage){
+  res.render("login", {
+    userAlreadyExisted: renderMessage,
+    pageTitle: "Login Page",
+    username: "",
+    authorized: req.isAuthenticated()
+  });
+}
+
+function renderRegisterPage(req, res, renderMessage){
+  res.render("register", {
+    userAlreadyExisted: renderMessage,
+    pageTitle: "Registration",
+    username: "",
+    authorized: req.isAuthenticated()
+  });
+}
+//=================================================================|
+//                      DEMO SITE POST ROUTE
+//-----------------------------------------------------------------|
+//reference: http://www.passportjs.org/docs/authenticate/
+app.post("/login", (req, res, next) => {
+  // Create user document for checking
+  const user = new User({
+    username: req.body.username,
+    password: req.body.password
+  });
+  passport.authenticate('local', (err, user, info) => {
+    if (err) {
+      console.log(err);
+    }
+
+    if (!user) {
+      renderLoginPage(req, res, "Invalid login credentials.");
+    }
+    else {
+      req.logIn(user, (err) => {
+        if (err) {
+          console.log(err);
+        }
+        else {
+          return res.redirect("/private");
+        }
+      });
+    }
+  })(req, res, next);
+});
+
+app.post("/register", (req, res) => {
+  // This function came from passport mongoose
+  User.register({ username: req.body.username }, req.body.password, (err, user) => {
+    if (err) {
+      console.log(err);
+      renderRegisterPage(req, res, "Email already in use.");
+    }
+    else{
+      passport.authenticate("local")(req, res, () => { res.redirect("/private"); });
+    }
+  });
+});
+
 app.post("/settings", (req, res)=>{
   const currentUser = req.session.passport.user;
   const oldPassword = req.body.oldPassword;
@@ -134,38 +149,25 @@ app.post("/settings", (req, res)=>{
       if(!err){
         if(resultObject){
           resultObject.changePassword(oldPassword, newPassword, (err)=>{
-            if(!err){
-              res.render("login", {
-                userAlreadyExisted: "Password updated, please login again.",
-                pageTitle: "Login Page",
-                username: req.session.passport.user,
-                authorized: req.isAuthenticated()
-              });
-            }
-            else{
-              renderSettingPage(req, res, "Somehting went wrong, please try again...");
-            }
+            if(!err){renderLoginPage(req, res, "Password updated, please login again.")}
+            else{renderSettingPage(req, res, "Somehting went wrong, please try again...");}
           });
         }
-        else{
-          renderSettingPage(req, res, "User does not exist in our record, please signout and try again.");
-        }
+        else{renderSettingPage(req, res, "User does not exist in our record, please signout and try again.");}
       }
-      else{
-        renderSettingPage(req, res, "Somehting went wrong, please try again...");
-      }
+      else{renderSettingPage(req, res, "Somehting went wrong, please try again...");}
     });
   }
-  else{
-    renderSettingPage(req, res, "Both columns of new password must be the same.");
-  }
-
+  else{renderSettingPage(req, res, "Both columns of new password must be the same.");}
 });
 //=================================================================|
 //                      DEMO SITE GET ROUTE
 //-----------------------------------------------------------------|
-
 app.get("/", (req, res) => {
+  res.redirect("/home");
+});
+
+app.get("/home", (req, res) => {
   if (req.isAuthenticated()) {
     res.render("home", {
       loggedout: "",
@@ -182,7 +184,6 @@ app.get("/", (req, res) => {
       authorized: req.isAuthenticated()
     });
   }
-
 });
 
 // "/private" route relies on passport to authenticate
@@ -190,15 +191,12 @@ app.get("/", (req, res) => {
 app.get("/private", (req, res) => {
   if (req.isAuthenticated()) {
     renderPrivatePage(req, res);
-  } else {
-    res.redirect("/login");
-  }
+  } else { res.redirect("/login"); }
 });
 
 app.get("/register", (req, res) => {
-  if (req.isAuthenticated()) {
-    renderPrivatePage(req, res);
-  } else {
+  if (req.isAuthenticated()) { res.redirect("/private"); }
+  else {
     res.render("register", {
       userAlreadyExisted: "",
       pageTitle: "Registration",
@@ -209,35 +207,43 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  if (req.isAuthenticated()) {
-    renderPrivatePage(req, res);
-  } else {
+  if (req.isAuthenticated()) { res.redirect("/private"); }
+  else {
     res.render("login", {
       userAlreadyExisted: "",
       pageTitle: "Login Page",
-      username: "",
       authorized: req.isAuthenticated()
     });
   }
 });
 
-app.get("/logout", (req, res)=>{
-  //This came from passport
-  req.logout();
-  res.render("home", {
-    loggedout: "You have successfully logged out.",
-    pageTitle: "Welcome",
-    username: "",
-    authorized: req.isAuthenticated()
-  });
-});
-
 app.get("/settings", (req, res) => {
   if (req.isAuthenticated()) {
     renderSettingPage(req, res, "");
-  } else {
-    res.redirect("/login");
   }
+  else { res.redirect("/login"); }
+});
+
+app.get("/logout", (req, res) => {
+  //This came from passport
+  if(req.session){
+    req.logout();
+    req.session.destroy((err) => {
+      if(err){ console.log(err); }
+      else{
+        res.clearCookie('session-id');
+        res.redirect("/");
+      }
+    });
+
+  }
+});
+
+app.get("*", (req, res) => {
+  res.status(404).render("notfound",{
+    pageTitle: "4o4 NoT FoUnD",
+    authorized: req.isAuthenticated()
+  });
 });
 
 app.listen(process.env.PORT, (err) => {
