@@ -1,3 +1,4 @@
+
 require('dotenv').config();
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -6,6 +7,8 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
+const GoogleStrategy = require("passport-google-oauth20").Strategy; // Google OAuth20
+const findOrCreate = require("mongoose-findorcreate"); // just to make findOrCreate work.
 
 // Initalize app using express
 const app = express();
@@ -34,7 +37,6 @@ app.use(passport.session());
 // need to use createIndex otherwise its depreated
 //-----------------------------------------------------------------|
 
-
 mongoose.connect("mongodb://" + process.env.DB_HOST + ":" + process.env.DB_PORT + "/" + process.env.DB_NAME, {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -43,21 +45,48 @@ mongoose.set('useCreateIndex', true);
 
 const userSchema = mongoose.Schema({
   username: String,
-  password: String
+  password: String,
+  googleId : String
 });
 
 // add plugin for mongoose userPassword schema.
+// add plugin for findOrCreate package
 //-----------------------------------------------------------------|
 userSchema.plugin(passportLocalMongoose);
+userSchema.plugin(findOrCreate);
 
-const User = mongoose.model("Userpass", userSchema);
+const User = mongoose.model("User", userSchema);
 
+//=================================================================|
+//                     PASSPORT STRATEGY
+//-----------------------------------------------------------------|
 // mongoose serialize and deserialize users
 //-----------------------------------------------------------------|
-passport.use(User.createStrategy());
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+passport.use(User.createStrategy()); // authenticate("local")
+passport.serializeUser( (user, done) => {
+  done(null, user.id);
+});
 
+passport.deserializeUser((id, done) => {
+  User.findById(id, (err, user) => {
+    done(err, user);
+  });
+});
+// Using Google Authentication 2.0
+//-----------------------------------------------------------------|
+passport.use(new GoogleStrategy({ // authenticate("google")
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    callbackURL: "http://" + process.env.SR_HOST + ":" + process.env.PORT + "/auth/google/private",
+    userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
+  },
+  (accessToken, refreshToken, profile, cb) => {
+    console.log(profile); // create user profile id from this callback function from passport google OAuth 2.
+    User.findOrCreate({ googleId: profile.id }, (err, user) => {
+      return cb(err, user);
+    });
+  }
+));
 //=================================================================|
 //                      DEMO PAGE RENDERER
 //-----------------------------------------------------------------|
@@ -105,6 +134,7 @@ app.post("/login", (req, res, next) => {
     username: req.body.username,
     password: req.body.password
   });
+
   passport.authenticate('local', (err, user, info) => {
     if (err) {
       console.log(err);
@@ -119,6 +149,9 @@ app.post("/login", (req, res, next) => {
           console.log(err);
         }
         else {
+          if(req.body.remember){
+            req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; } // Cookie expires after 30 days
+          else { req.session.cookie.expires = false; } // Cookie expires at end of session
           return res.redirect("/private");
         }
       });
@@ -206,6 +239,17 @@ app.get("/register", (req, res) => {
   }
 });
 
+// Google OAuth2.0 button take users here
+app.get("/auth/google",
+  passport.authenticate('google', { scope: ["profile"] })
+);
+
+// Google OAuth callback
+app.get("/auth/google/private",
+  passport.authenticate('google', { failureRedirect: "/login"}),
+    (req, res) => { res.redirect('/private'); });
+  //If OAuth success, bring them to private page.
+
 app.get("/login", (req, res) => {
   if (req.isAuthenticated()) { res.redirect("/private"); }
   else {
@@ -228,14 +272,8 @@ app.get("/logout", (req, res) => {
   //This came from passport
   if(req.session){
     req.logout();
-    req.session.destroy((err) => {
-      if(err){ console.log(err); }
-      else{
-        res.clearCookie('session-id');
-        res.redirect("/");
-      }
-    });
-
+    req.session.destroy();
+    res.redirect("/");
   }
 });
 

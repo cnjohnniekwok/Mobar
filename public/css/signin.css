@@ -78,3 +78,23 @@ body {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}
+
+.copyright {
+  color: #EAF6F6;
+  font-size: 0.55rem;
+  padding: 20px 0;
+}
+
+.nounderline {
+  text-decoration: none !important
+}
+
+.siteTheme {
+  background-color: rgba(0, 0, 0, 0.2)
+}
