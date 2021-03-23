@@ -46,7 +46,8 @@ mongoose.set('useCreateIndex', true);
 const userSchema = mongoose.Schema({
   username: String,
   password: String,
-  googleId : String
+  googleId : String,
+  displayName: String
 });
 
 // add plugin for mongoose userPassword schema.
@@ -82,7 +83,7 @@ passport.use(new GoogleStrategy({ // authenticate("google")
   },
   (accessToken, refreshToken, profile, cb) => {
     console.log(profile); // create user profile id from this callback function from passport google OAuth 2.
-    User.findOrCreate({ googleId: profile.id }, (err, user) => {
+    User.findOrCreate({ googleId: profile.id, displayName: profile.displayName }, (err, user) => {
       return cb(err, user);
     });
   }
@@ -91,23 +92,43 @@ passport.use(new GoogleStrategy({ // authenticate("google")
 //                      DEMO PAGE RENDERER
 //-----------------------------------------------------------------|
 function renderSettingPage(req, res, renderMessage){
-  res.render("settings", {
-    userAlreadyExisted: renderMessage,
-    pageTitle: "Settings",
-    username: req.session.passport.user,
-    authorized: req.isAuthenticated()
+  User.findOne({_id:req.session.passport.user},(err,resultObject)=>{
+    if(err){ console.log(err);}
+    else{
+      if(resultObject){
+        let dropDownListName = resultObject.username;
+        if(!dropDownListName){dropDownListName = resultObject.displayName }
+        res.render("settings", {
+          userAlreadyExisted: renderMessage,
+          pageTitle: "Settings",
+          username: dropDownListName,
+          authorized: req.isAuthenticated()
+        });
+      }
+    }
   });
 }
 
-function renderPrivatePage(req ,res){
-  res.render("private", {
-    pageTitle: "Authenticated!",
-    username: req.session.passport.user,
-    authorized: req.isAuthenticated()
+function renderPrivatePage(req , res, renderMessage){
+  User.findOne({_id:req.session.passport.user},(err,resultObject)=>{
+    if(err){ console.log(err);}
+    else{
+      if(resultObject){
+        let dropDownListName = resultObject.username;
+        if(!dropDownListName){dropDownListName = resultObject.displayName }
+        res.render("private", {
+          userAlreadyExisted: renderMessage,
+          pageTitle: "Authenticated!",
+          username: dropDownListName,
+          authorized: req.isAuthenticated()
+        });
+      }
+    }
   });
 }
 
 function renderLoginPage(req, res, renderMessage){
+  const userName = userNameLookUp(req.session.passport.user);
   res.render("login", {
     userAlreadyExisted: renderMessage,
     pageTitle: "Login Page",
@@ -223,7 +244,7 @@ app.get("/home", (req, res) => {
 //-----------------------------------------------------------------|
 app.get("/private", (req, res) => {
   if (req.isAuthenticated()) {
-    renderPrivatePage(req, res);
+    renderPrivatePage(req, res, "");
   } else { res.redirect("/login"); }
 });
 
