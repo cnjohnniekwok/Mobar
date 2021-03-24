@@ -5,13 +5,13 @@
       <div class="profile-img">
         <% if(image === "NOIMAGE") { %>
         <img
-          src="https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.pngitem.com%2Fmiddle%2FmJiimi_my-profile-icon-blank-profile-picture-circle-hd%2F&psig=AOvVaw1A3pCBAi6YEyClgr1gwdXN&ust=1616676871134000&source=images&cd=vfe&ved=0CAIQjRxqFwoTCMDXts78yO8CFQAAAAAdAAAAABAD"
+          src="icons/profileDefault.png"
           alt="">
         <% } else {%>
         <img src="data:image/<%=image.img.contentType%>;base64,<%=image.img.data.toString('base64')%>" alt="profile Image" />
         <% } %>
         <div class="file btn btn-lg btn-primary">
-          Change Photo
+          Change Profile Picture
           <form action="/private/profileImageUpload" method="POST" enctype="multipart/form-data">
             <div>
               <input type="hidden" name="userID" value="<%=userID%>">
