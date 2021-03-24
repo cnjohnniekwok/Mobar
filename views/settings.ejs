@@ -1,19 +1,77 @@
 <%- include("header"); -%>
-  <body class="text-center">
+<% let injectClass = "disabled" %>
+<% if(loginWith === "Server") { injectClass = ""; }%>
 
-<main class="form-setting">
-  <form class="" action="/settings" method="post">
-    <!-- <img class="mb-4" src="/docs/5.0/assets/brand/bootstrap-logo.svg" alt="" width="72" height="57"> -->
-    <h1 class="h3 mb-3 fw-normal">Change your password</h1>
-    <label for="inputPassword" class="visually-hidden">oldPassword</label>
-    <input type="password" id="inputPassword" name="oldPassword" class="form-control update-pwd-top" placeholder="Current password" required>
-    <label for="inputPassword" class="visually-hidden">newPassword</label>
-    <input type="password" id="inputPassword" name="newPassword" class="form-control update-pwd-mid" placeholder="New password" required>
-    <label for="inputPassword" class="visually-hidden">confrimPassword</label>
-    <input type="password" id="inputPassword" name="confirmPswd" class="form-control update-pwd-bot" placeholder="Confirm password" required>
-    <p class="warn-text" ><%= userAlreadyExisted %></p>
-    <button class="w-100 btn btn-lg btn-outline-primary" type="submit">Update</button>
-    <p class="mt-5 mb-3 text-muted">&copy; Johnnie Kwok@MoCo 2021</p>
-  </form>
-</main>
+
+  <body class="text-center">
+    <h1 class="h3 mb-3 fw-normal">Account Profile Settings</h1>
+    <div class="form-setting">
+      <form class="" action="/settings/account" method="post">
+        <div class="form-group">
+          <label class="form-label">Display Name:</label>
+          <input type="text" class="form-control mb-1" name="displayName" value="<%=username%>" placeholder="Display Name" <%= injectClass %>>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your Name:</label>
+          <input type="text" class="form-control mb-1" name="memberName" placeholder="FirstName, LastName">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number:</label>
+          <input type="text" class="form-control mb-1" name="phoneNumber" placeholder="+(xxx) xxxx xxxx">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address:</label>
+          <input type="text" class="form-control mb-1" name="emailAddr" placeholder="abc@efg.com">
+        </div>
+
+        <hr class="mb-4">
+        <div class="form-group">
+          <label class="form-label">Profession:</label>
+          <input type="text" class="form-control mb-1" name="profession" placeholder="Programmer, Web Developer">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Experience:</label>
+          <input type="text" class="form-control mb-1" name="experience" placeholder="">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Project Counts:</label>
+          <input type="text" class="form-control mb-1" name="projectCount" placeholder="10+">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Preferred language:</label>
+          <input type="text" class="form-control mb-1" name="language" placeholder="English, Chinese">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Availabilty:</label>
+          <input type="text" class="form-control mb-1" name="availability" placeholder="Weekends -OR-  MON,WED,FRI">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Personal Bio:</label>
+          <textarea class="form-control" id="exampleFormControlTextarea1" name="bio" rows="3" placeholder="I <3 Programming!"></textarea>
+        </div>
+          <button class="mt-2 w-100 btn btn-lg btn-outline-primary" type="submit">Update</button>
+        </form>
+
+      </div>
+    <hr class="mb-4">
+    <% if(loginWith != "Server"){ %>
+      <div class="col">
+        <h3>Your password is managed by your <%= loginWith %> Account.</h3>
+        <p>Visit you <%= loginWith %> Account to change your password settings.</p>
+      <div>
+    <% } %>
+    <div class="form-setting">
+        <form class="" action="/settings/password" method="post">
+        <!-- <img class="mb-4" src="/docs/5.0/assets/brand/bootstrap-logo.svg" alt="" width="72" height="57"> -->
+        <h1 class="h3 mb-3 fw-normal">Change your password</h1>
+        <label for="inputPassword" class="visually-hidden">oldPassword</label>
+        <input type="password" id="inputPassword" name="oldPassword" class="form-control update-pwd-top" placeholder="Current password" required <%= injectClass %>>
+        <label for="inputPassword" class="visually-hidden">newPassword</label>
+        <input type="password" id="inputPassword" name="newPassword" class="form-control update-pwd-mid" placeholder="New password" required <%= injectClass %>>
+        <label for="inputPassword" class="visually-hidden">confrimPassword</label>
+        <input type="password" id="inputPassword" name="confirmPswd" class="form-control update-pwd-bot" placeholder="Confirm password" required <%= injectClass %>>
+        <p class="warn-text" ><%= userAlreadyExisted %></p>
+        <button class="w-100 btn btn-lg btn-outline-primary" type="submit" <%= injectClass %>>Update</button>
+      </form>
+    </div>
 <%- include("footer"); -%>
