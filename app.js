@@ -3,14 +3,17 @@ require('dotenv').config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
+const fs = require("fs");
+const path = require("path");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
+const findOrCreate = require("mongoose-findorcreate"); // just to make findOrCreate work.
 const GoogleStrategy = require("passport-google-oauth20").Strategy; // Google OAuth20
 const GitHubStrategy = require("passport-github2").Strategy; // passport-github2;
-const findOrCreate = require("mongoose-findorcreate"); // just to make findOrCreate work.
 const HttpsProxyAgent = require('https-proxy-agent'); //proxy... just need to do this anyway..
+const multer = require('multer'); //for image uploading use.
 
 // Initalize app using express
 const app = express();
@@ -63,6 +66,15 @@ const userSchema = mongoose.Schema({
   pay: String
 });
 
+const imageSchema = new mongoose.Schema({
+  userID: String,
+  name: String,
+  img:{
+    data: Buffer,
+    contentType: String
+  }
+});
+
 // add plugin for mongoose userPassword schema.
 // add plugin for findOrCreate package
 //-----------------------------------------------------------------|
@@ -72,7 +84,21 @@ userSchema.plugin(findOrCreate);
 // User database mongoDB mongoose model
 //-----------------------------------------------------------------|
 const User = mongoose.model("User", userSchema);
+const ImageModel = new mongoose.model('Image', imageSchema);
 
+//=================================================================|
+//                      IMAGE UPLOAD STORAGE
+//-----------------------------------------------------------------|
+let storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads')
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + '-' + Date.now())
+    }
+});
+
+let upload = multer({ storage: storage });
 //=================================================================|
 //                     PASSPORT STRATEGY
 //-----------------------------------------------------------------|
@@ -125,12 +151,12 @@ const githubOAuth20Strategy = new GitHubStrategy({
 // reference: https://github.com/drudge/passport-facebook-token/issues/67
 // restart application server to apply proxy change
 //-----------------------------------------------------------------|
-const proxyAgent = new HttpsProxyAgent(process.env.HTTP_PROXY);
-
-// Set proxy agent to OAuth Strategies
-//-----------------------------------------------------------------|
-googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
-githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
+// const proxyAgent = new HttpsProxyAgent(process.env.HTTP_PROXY);
+//
+// // Set proxy agent to OAuth Strategies
+// //-----------------------------------------------------------------|
+// googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
+// githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
 
 // Set Passport to use Strategies
 //-----------------------------------------------------------------|
@@ -149,25 +175,58 @@ function renderSettingPage(req, res, renderMessage){
       }
       else{
         if(resultObject){
-          let dropDownListName = resultObject.username;
-          if(!dropDownListName){dropDownListName = resultObject.displayName }
+            console.log(resultObject);
+            let dropDownListName  = resultObject.username;
+            let profession        = resultObject.profession;
+            let memberName        = resultObject.memberName;
+            let emailAddr         = resultObject.emailAddr;
+            let phoneNumber       = resultObject.phoneNumber;
+            let experience        = resultObject.experience;
+            let projectCount      = resultObject.projectCount;
+            let language          = resultObject.language;
+            let availability      = resultObject.availability;
+            let bio               = resultObject.bio;
+            let pay               = resultObject.pay;
 
-          let loginWithOAuth = "Server";
-          if(resultObject.githubId){
-            // console.log(resultObject.githubId);
-            loginWithOAuth = "GitHub";
-          }
-          else if(resultObject.googleId){
-            // console.log(resultObject.googleId);
-            loginWithOAuth = "Google";
-          }
+            if(!dropDownListName){ dropDownListName = resultObject.displayName; }
+            if(!profession){ profession = ""; }
+            if(!memberName){ memberName = ""; }
+            if(!emailAddr){ emailAddr = ""; }
+            if(!phoneNumber){ phoneNumber = ""; }
+            if(!experience){ experience = ""; }
+            if(!projectCount){ projectCount = ""; }
+            if(!language){ language = ""; }
+            if(!availability){ availability = ""; }
+            if(!bio){ bio = ""; }
+            if(!pay){ pay = ""; }
 
-          res.render("settings", {
-            userAlreadyExisted: renderMessage,
-            pageTitle: "Settings",
-            username: dropDownListName,
-            authorized: req.isAuthenticated(),
-            loginWith: loginWithOAuth
+            let loginWithOAuth = "Server";
+            if(resultObject.githubId){
+              // console.log(resultObject.githubId);
+              loginWithOAuth = "GitHub";
+            }
+            else if(resultObject.googleId){
+              // console.log(resultObject.googleId);
+              loginWithOAuth = "Google";
+            }
+
+            res.render("settings", {
+              userAlreadyExisted: "",
+              pageTitle: "Profile Settings",
+              username: dropDownListName,
+              loggedout: "",
+              authorized: req.isAuthenticated(),
+  			      loginWith: loginWithOAuth,
+              profession: profession,
+              memberName: memberName,
+              emailAddr: emailAddr,
+              phoneNumber: phoneNumber,
+              experience: experience,
+              projectCount: projectCount,
+              language: language,
+              availability: availability,
+              bio: bio,
+              pay: pay
           });
         }
       }
@@ -178,7 +237,7 @@ function renderSettingPage(req, res, renderMessage){
   }
 }
 
-function renderPrivatePage(req , res, renderMessage){
+function renderPrivatePage(req , res, renderMessage){ //renderMessage can be reanderObjects for multi input
   if(mongoose.connection.readyState === 1){
     User.findOne({_id:req.session.passport.user},(err,resultObject)=>{
       if(err){
@@ -186,29 +245,45 @@ function renderPrivatePage(req , res, renderMessage){
       }
       else{
         if(resultObject){
-          let dropDownListName = resultObject.username;
-          if(!dropDownListName){dropDownListName = resultObject.displayName }
-          res.render("private", {
-            userAlreadyExisted: renderMessage,
-            pageTitle: "Authenticated!",
-            username: dropDownListName,
-            authorized: req.isAuthenticated(),
-            userID: resultObject._id,
-            displayName: dropDownListName,
-            profession: resultObject.profession,
-            memberName: resultObject.memberName,
-            emailAddr: resultObject.emailAddr,
-            phoneNumber: resultObject.phoneNumber,
-            experience: resultObject.experience,
-            pay: resultObject.pay,
-            projectCount: resultObject.projectCount,
-            language: resultObject.language,
-            availability: resultObject.availability,
-            bio: resultObject.bio,
-          });
+
+          ImageModel.findOne({ userID: resultObject._id },(err, resultImage) => {
+            if (err) {
+              console.log(err);
+              res.status(500).send('An error occurred', err);
+            }
+
+            if(!resultImage){resultImage = "NOIMAGE";};
+
+            let imageErroMessage = req.body.imageErroMessage;
+            if(!imageErroMessage){ imageErroMessage = "";}
+            console.log(resultImage);
+
+            let dropDownListName = resultObject.displayName;
+            if(!dropDownListName){dropDownListName = resultObject.username; }
+            res.render("private", {
+              imageErroMessage: renderMessage,
+              pageTitle: "Authenticated!",
+              username: dropDownListName,
+              authorized: req.isAuthenticated(),
+              userID: resultObject._id,
+              image: resultImage,
+              displayName: dropDownListName,
+              profession: resultObject.profession,
+              memberName: resultObject.memberName,
+              emailAddr: resultObject.emailAddr,
+              phoneNumber: resultObject.phoneNumber,
+              experience: resultObject.experience,
+              pay: resultObject.pay,
+              projectCount: resultObject.projectCount,
+              language: resultObject.language,
+              availability: resultObject.availability,
+              bio: resultObject.bio,
+            }); //render
+
+          }); //Image
         }
       }
-    });
+    }); //User
   }
   else{
     res.redirect("/servererror");
@@ -259,6 +334,29 @@ function renderRegisterPage(req, res, renderMessage){
 //=================================================================|
 //                      DEMO SITE POST ROUTE
 //-----------------------------------------------------------------|
+app.post('/private/profileImageUpload', upload.single('image'), (req, res, next) => {
+
+    const imagePath = path.join(__dirname + '/uploads/' + req.file.filename);
+    var obj = {
+        userID: req.body.userID,
+        img: {
+            data: fs.readFileSync(imagePath),
+            contentType: 'image/png'
+        }
+    }
+    ImageModel.findOneAndUpdate({userID: req.body.userID}, obj, {upsert: true} ,(err, item) => {
+        if (err) {
+            console.log(err);
+            fs.unlinkSync(imagePath);
+            res.redirect('/private');
+        }
+        else {
+            console.log("image uploaded.");
+            fs.unlinkSync(imagePath);
+            res.redirect('/private');
+        }
+    });
+});
 //reference: http://www.passportjs.org/docs/authenticate/
 app.post("/login", (req, res, next) => {
   // Create user document for checking
@@ -309,20 +407,9 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/settings/account", (req, res)=>{
-  let query = {_id: req.session.passport.user};
-  let update = {
-      displayName: req.body.displayName,
-      profession: req.body.profession,
-      memberName: req.body.memberName,
-      emailAddr: req.body.emailAddr,
-      phoneNumber: req.body.phoneNumber,
-      experience: req.body.experience,
-      pay: req.body.pay,
-      projectCount: req.body.projectCount,
-      language: req.body.language,
-      availability: req.body.availability,
-      bio: req.body.bio
-    };
+  console.log(req.body);
+  let query = { _id: req.session.passport.user};
+  let update = { $set: req.body };
   let options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
   console.log(req.body)
