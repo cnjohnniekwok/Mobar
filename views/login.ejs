@@ -1,5 +1,4 @@
 <%- include("header"); -%>
-
 <body class="text-center">
 
   <main class="form-signin">
@@ -22,17 +21,18 @@
           <div class="card-body">
             <button class="w-100 btn btn-lg btn-outline-primary" type="submit">Sign in</button>
             <hr>
+            <!-- Google Sign in -->
             <a class="w-100 btn btn-lg btn-social btn-google" href="/auth/google" role="button">
               <i class="fab fa-google"></i>
               Sign In with Google
             </a>
-            <a class="mt-2 w-120 btn btn-lg btn-social btn-github" href="/auth/google" role="button">
+            <!-- GitHub Sign in -->
+            <a class="mt-2 w-100 btn btn-lg btn-social btn-github" href="/auth/github" role="button">
               <i class="fab fa-github"></i>
               Sign In with GitHub
             </a>
-          </div>
         </div>
       </div>
     </form>
   </main>
-  <%- include("footer"); -%>
+<%- include("footer"); -%>

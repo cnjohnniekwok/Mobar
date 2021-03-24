@@ -8,7 +8,9 @@ const session = require("express-session");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy; // Google OAuth20
+const GitHubStrategy = require("passport-github2").Strategy; // passport-github2;
 const findOrCreate = require("mongoose-findorcreate"); // just to make findOrCreate work.
+const HttpsProxyAgent = require('https-proxy-agent'); //proxy... just need to do this anyway..
 
 // Initalize app using express
 const app = express();
@@ -47,7 +49,18 @@ const userSchema = mongoose.Schema({
   username: String,
   password: String,
   googleId : String,
-  displayName: String
+  githubId : String,
+  displayName: String,
+  profession: String,
+  memberName: String,
+  emailAddr: String,
+  phoneNumber: String,
+  experience: String,
+  projectCount: String,
+  language: String,
+  availability: String,
+  bio: String,
+  pay: String
 });
 
 // add plugin for mongoose userPassword schema.
@@ -56,6 +69,8 @@ const userSchema = mongoose.Schema({
 userSchema.plugin(passportLocalMongoose);
 userSchema.plugin(findOrCreate);
 
+// User database mongoDB mongoose model
+//-----------------------------------------------------------------|
 const User = mongoose.model("User", userSchema);
 
 //=================================================================|
@@ -73,62 +88,157 @@ passport.deserializeUser((id, done) => {
     done(err, user);
   });
 });
-// Using Google Authentication 2.0
+
+// Using Passport Google Open Authentication 2.0
 //-----------------------------------------------------------------|
-passport.use(new GoogleStrategy({ // authenticate("google")
-    clientID: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
+const googleOAuth20Strategy = new GoogleStrategy({ // authenticate("google")
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: "http://" + process.env.SR_HOST + ":" + process.env.PORT + "/auth/google/private",
     userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
   },
   (accessToken, refreshToken, profile, cb) => {
-    console.log(profile); // create user profile id from this callback function from passport google OAuth 2.
-    User.findOrCreate({ googleId: profile.id, displayName: profile.displayName }, (err, user) => {
+     console.log(profile); // create user profile id from this callback function from passport google OAuth 2.
+    User.findOrCreate({ googleId: profile.id, displayName: profile.displayName}, (err, user) => {
       return cb(err, user);
     });
   }
-));
+)
+
+// Using Passport Github Open Authentication 2.0
+//-----------------------------------------------------------------|
+const githubOAuth20Strategy = new GitHubStrategy({
+    clientID: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    callbackURL: "http://" + process.env.SR_HOST + ":" + process.env.PORT + "/auth/github/private",
+  },
+  (accessToken, refreshToken, profile, done) => {
+     console.log(profile);
+    User.findOrCreate({ githubId: profile.id, displayName: profile.displayName,  username:profile.username }, (err, user) => {
+      return done(err, user);
+    });
+  }
+)
+
+// Set Google OAuth to use proxy agent HTTP_PROXY=http://<proxyUser>:<proxyPass>@<proxyURL>:<proxyPort>
+// Comment this out if no proxy needed.
+// reference: https://github.com/drudge/passport-facebook-token/issues/67
+// restart application server to apply proxy change
+//-----------------------------------------------------------------|
+const proxyAgent = new HttpsProxyAgent(process.env.HTTP_PROXY);
+
+// Set proxy agent to OAuth Strategies
+//-----------------------------------------------------------------|
+googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
+githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
+
+// Set Passport to use Strategies
+//-----------------------------------------------------------------|
+passport.use(googleOAuth20Strategy);
+passport.use(githubOAuth20Strategy);
+
+// For proxy setting
 //=================================================================|
 //                      DEMO PAGE RENDERER
 //-----------------------------------------------------------------|
 function renderSettingPage(req, res, renderMessage){
-  User.findOne({_id:req.session.passport.user},(err,resultObject)=>{
-    if(err){ console.log(err);}
-    else{
-      if(resultObject){
-        let dropDownListName = resultObject.username;
-        if(!dropDownListName){dropDownListName = resultObject.displayName }
-        res.render("settings", {
-          userAlreadyExisted: renderMessage,
-          pageTitle: "Settings",
-          username: dropDownListName,
-          authorized: req.isAuthenticated()
-        });
+  if(mongoose.connection.readyState === 1){ // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+    User.findOne({_id:req.session.passport.user},(err,resultObject)=>{
+      if(err){
+        console.log(err);
       }
-    }
-  });
+      else{
+        if(resultObject){
+          let dropDownListName = resultObject.username;
+          if(!dropDownListName){dropDownListName = resultObject.displayName }
+
+          let loginWithOAuth = "Server";
+          if(resultObject.githubId){
+            // console.log(resultObject.githubId);
+            loginWithOAuth = "GitHub";
+          }
+          else if(resultObject.googleId){
+            // console.log(resultObject.googleId);
+            loginWithOAuth = "Google";
+          }
+
+          res.render("settings", {
+            userAlreadyExisted: renderMessage,
+            pageTitle: "Settings",
+            username: dropDownListName,
+            authorized: req.isAuthenticated(),
+            loginWith: loginWithOAuth
+          });
+        }
+      }
+    });
+  }
+  else{
+    res.redirect("/servererror");
+  }
 }
 
 function renderPrivatePage(req , res, renderMessage){
-  User.findOne({_id:req.session.passport.user},(err,resultObject)=>{
-    if(err){ console.log(err);}
-    else{
-      if(resultObject){
-        let dropDownListName = resultObject.username;
-        if(!dropDownListName){dropDownListName = resultObject.displayName }
-        res.render("private", {
-          userAlreadyExisted: renderMessage,
-          pageTitle: "Authenticated!",
-          username: dropDownListName,
-          authorized: req.isAuthenticated()
-        });
+  if(mongoose.connection.readyState === 1){
+    User.findOne({_id:req.session.passport.user},(err,resultObject)=>{
+      if(err){
+        console.log(err);
       }
-    }
-  });
+      else{
+        if(resultObject){
+          let dropDownListName = resultObject.username;
+          if(!dropDownListName){dropDownListName = resultObject.displayName }
+          res.render("private", {
+            userAlreadyExisted: renderMessage,
+            pageTitle: "Authenticated!",
+            username: dropDownListName,
+            authorized: req.isAuthenticated(),
+            userID: resultObject._id,
+            displayName: dropDownListName,
+            profession: resultObject.profession,
+            memberName: resultObject.memberName,
+            emailAddr: resultObject.emailAddr,
+            phoneNumber: resultObject.phoneNumber,
+            experience: resultObject.experience,
+            pay: resultObject.pay,
+            projectCount: resultObject.projectCount,
+            language: resultObject.language,
+            availability: resultObject.availability,
+            bio: resultObject.bio,
+          });
+        }
+      }
+    });
+  }
+  else{
+    res.redirect("/servererror");
+  }
+}
+
+function renderHomePage(req, res){
+  if(mongoose.connection.readyState === 1){
+    User.findOne({_id:req.session.passport.user},(err,resultObject)=>{
+      if(err){
+        console.log(err);
+      }
+      else{
+        if(resultObject){
+          let dropDownListName = resultObject.username;
+          if(!dropDownListName){dropDownListName = resultObject.displayName }
+          res.render("home", {
+            userAlreadyExisted: "",
+            pageTitle: "Mo.Co.",
+            username: dropDownListName,
+            loggedout: "",
+            authorized: req.isAuthenticated()
+          });
+        }
+      }
+    });
+  }
 }
 
 function renderLoginPage(req, res, renderMessage){
-  const userName = userNameLookUp(req.session.passport.user);
   res.render("login", {
     userAlreadyExisted: renderMessage,
     pageTitle: "Login Page",
@@ -145,6 +255,7 @@ function renderRegisterPage(req, res, renderMessage){
     authorized: req.isAuthenticated()
   });
 }
+
 //=================================================================|
 //                      DEMO SITE POST ROUTE
 //-----------------------------------------------------------------|
@@ -155,65 +266,99 @@ app.post("/login", (req, res, next) => {
     username: req.body.username,
     password: req.body.password
   });
+    passport.authenticate('local', (err, user, info) => {
+      if (err) {
+        console.log(err);
+      }
 
-  passport.authenticate('local', (err, user, info) => {
-    if (err) {
-      console.log(err);
-    }
-
-    if (!user) {
-      renderLoginPage(req, res, "Invalid login credentials.");
-    }
-    else {
-      req.logIn(user, (err) => {
-        if (err) {
-          console.log(err);
-        }
-        else {
-          if(req.body.remember){
-            req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; } // Cookie expires after 30 days
-          else { req.session.cookie.expires = false; } // Cookie expires at end of session
-          return res.redirect("/private");
-        }
-      });
-    }
-  })(req, res, next);
+      if (!user) {
+        renderLoginPage(req, res, "Invalid login credentials.");
+      }
+      else {
+        req.logIn(user, (err) => {
+          if (err) {
+            console.log(err);
+          }
+          else {
+            if(req.body.remember){
+              req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; } // Cookie expires after 30 days
+            else { req.session.cookie.expires = false; } // Cookie expires at end of session
+            return res.redirect("/private");
+          }
+        });
+      }
+    })(req, res, next);
 });
 
 app.post("/register", (req, res) => {
   // This function came from passport mongoose
-  User.register({ username: req.body.username }, req.body.password, (err, user) => {
-    if (err) {
-      console.log(err);
-      renderRegisterPage(req, res, "Email already in use.");
-    }
-    else{
-      passport.authenticate("local")(req, res, () => { res.redirect("/private"); });
-    }
+  if(mongoose.connection.readyState === 1){
+    User.register({ username: req.body.username }, req.body.password, (err, user) => {
+      if (err) {
+        console.log(err);
+        renderRegisterPage(req, res, "Email already in use.");
+      }
+      else{
+        passport.authenticate("local")(req, res, () => { res.redirect("/private"); });
+      }
+    });
+  }
+  else{
+    res.redirect("/servererror");
+  }
+});
+
+app.post("/settings/account", (req, res)=>{
+  let query = {_id: req.session.passport.user};
+  let update = {
+      displayName: req.body.displayName,
+      profession: req.body.profession,
+      memberName: req.body.memberName,
+      emailAddr: req.body.emailAddr,
+      phoneNumber: req.body.phoneNumber,
+      experience: req.body.experience,
+      pay: req.body.pay,
+      projectCount: req.body.projectCount,
+      language: req.body.language,
+      availability: req.body.availability,
+      bio: req.body.bio
+    };
+  let options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+  console.log(req.body)
+  User.updateOne(query, update, options, (err) => {
+     if(err){ console.log(err);}
+     else{
+       res.redirect("/");
+     }
   });
 });
 
-app.post("/settings", (req, res)=>{
+app.post("/settings/password", (req, res)=>{
   const currentUser = req.session.passport.user;
+  console.log(req.session.passport);
   const oldPassword = req.body.oldPassword;
   const newPassword = req.body.newPassword;
   const confirmPswd = req.body.confirmPswd;
   if(newPassword === confirmPswd){
-    User.findOne({username:currentUser}, (err, resultObject)=>{
-      if(!err){
-        if(resultObject){
-          resultObject.changePassword(oldPassword, newPassword, (err)=>{
-            if(!err){renderLoginPage(req, res, "Password updated, please login again.")}
-            else{renderSettingPage(req, res, "Somehting went wrong, please try again...");}
-          });
+    if(mongoose.connection.readyState === 1){
+      User.findOne({_id:currentUser}, (err, resultObject)=>{
+        if(!err){
+          if(resultObject){
+            resultObject.changePassword(oldPassword, newPassword, (err)=>{
+              if(!err){renderLoginPage(req, res, "Password updated, please login again.")}
+              else{console.log(err); renderSettingPage(req, res, "Somehting went wrong, please try again...");}
+            });
+          }
+          else{renderSettingPage(req, res, "User does not exist in our record, please signout and try again.");}
         }
-        else{renderSettingPage(req, res, "User does not exist in our record, please signout and try again.");}
-      }
-      else{renderSettingPage(req, res, "Somehting went wrong, please try again...");}
-    });
+        else{ console.log(err); renderSettingPage(req, res, "Somehting went wrong, please try again...");}
+      });
+    }
   }
   else{renderSettingPage(req, res, "Both columns of new password must be the same.");}
 });
+
 //=================================================================|
 //                      DEMO SITE GET ROUTE
 //-----------------------------------------------------------------|
@@ -223,23 +368,20 @@ app.get("/", (req, res) => {
 
 app.get("/home", (req, res) => {
   if (req.isAuthenticated()) {
-    res.render("home", {
-      loggedout: "",
-      pageTitle: "Welcome",
-      username: req.session.passport.user,
-      authorized: req.isAuthenticated()
-    });
+    renderHomePage(req, res);
   }
   else{
     res.render("home", {
       loggedout: "",
-      pageTitle: "Welcome",
+      pageTitle: "Mo.Co.",
       username: "",
       authorized: req.isAuthenticated()
     });
   }
 });
-
+//=================================================================|
+//                      PROTECTED CONTENT
+//-----------------------------------------------------------------|
 // "/private" route relies on passport to authenticate
 //-----------------------------------------------------------------|
 app.get("/private", (req, res) => {
@@ -248,6 +390,9 @@ app.get("/private", (req, res) => {
   } else { res.redirect("/login"); }
 });
 
+//=================================================================|
+//                      SERVER AUTHENICATION
+//-----------------------------------------------------------------|
 app.get("/register", (req, res) => {
   if (req.isAuthenticated()) { res.redirect("/private"); }
   else {
@@ -260,17 +405,6 @@ app.get("/register", (req, res) => {
   }
 });
 
-// Google OAuth2.0 button take users here
-app.get("/auth/google",
-  passport.authenticate('google', { scope: ["profile"] })
-);
-
-// Google OAuth callback
-app.get("/auth/google/private",
-  passport.authenticate('google', { failureRedirect: "/login"}),
-    (req, res) => { res.redirect('/private'); });
-  //If OAuth success, bring them to private page.
-
 app.get("/login", (req, res) => {
   if (req.isAuthenticated()) { res.redirect("/private"); }
   else {
@@ -282,12 +416,38 @@ app.get("/login", (req, res) => {
   }
 });
 
-app.get("/settings", (req, res) => {
-  if (req.isAuthenticated()) {
-    renderSettingPage(req, res, "");
-  }
-  else { res.redirect("/login"); }
-});
+//-----------------------------------------------------------------|
+//                        GOOGLE OAUTH2.0
+//-----------------------------------------------------------------|
+// Sign in with Google button take users here
+//-----------------------------------------------------------------|
+app.get("/auth/google",
+  passport.authenticate('google', { scope: ["profile"] })
+);
+
+// Google OAuth callback
+app.get("/auth/google/private",
+  passport.authenticate('google', { failureRedirect: "/login"}),
+    (req, res) => { res.redirect('/private'); });
+    //If OAuth success, bring them to private page.
+//-----------------------------------------------------------------|
+//||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+//-----------------------------------------------------------------|
+//                        GITHUT AUTH
+//-----------------------------------------------------------------|
+// Sign in with GitHub button take users here
+//-----------------------------------------------------------------|
+app.get("/auth/github",
+  passport.authenticate('github', { scope: ["user:email"] })
+);
+
+// Github OAuth callback
+app.get("/auth/github/private",
+  passport.authenticate('github', { failureRedirect: "/login"}),
+    (req, res) => { res.redirect('/private'); });
+    //If OAuth success, bring them to private page.
+//-----------------------------------------------------------------|
+//||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
 app.get("/logout", (req, res) => {
   //This came from passport
@@ -298,6 +458,28 @@ app.get("/logout", (req, res) => {
   }
 });
 
+//=================================================================|
+//                        USER SETTINGS
+//-----------------------------------------------------------------|
+app.get("/settings", (req, res) => {
+  if (req.isAuthenticated()) {
+    renderSettingPage(req, res, "");
+  }
+  else { res.redirect("/login"); }
+});
+
+
+//=================================================================|
+//                    OTHER SERVER RESPONSE
+//-----------------------------------------------------------------|
+
+app.get("/servererror", (req, res) => {
+  res.status(500).render("servererror",{
+    pageTitle: "5o0 Server Error",
+    authorized: req.isAuthenticated()
+  });
+});
+
 app.get("*", (req, res) => {
   res.status(404).render("notfound",{
     pageTitle: "4o4 NoT FoUnD",
@@ -305,6 +487,9 @@ app.get("*", (req, res) => {
   });
 });
 
+//=================================================================|
+//                    SERVER LISTENING PORT
+//-----------------------------------------------------------------|
 app.listen(process.env.PORT, (err) => {
   console.log("Server is successfully running at prot -: " + process.env.PORT);
 });
