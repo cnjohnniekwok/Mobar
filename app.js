@@ -42,6 +42,8 @@ app.use(passport.session());
 // need to use createIndex otherwise its depreated
 //-----------------------------------------------------------------|
 
+// Some day in the future I will be dealing with this cloud server env variables...
+//reference: https://devcenter.heroku.com/articles/config-vars
 mongoose.connect("mongodb://" + process.env.DB_HOST + ":" + process.env.DB_PORT + "/" + process.env.DB_NAME, {
   useNewUrlParser: true,
   useUnifiedTopology: true
