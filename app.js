@@ -178,7 +178,7 @@ function renderSettingPage(req, res, renderMessage){
       else{
         if(resultObject){
             console.log(resultObject);
-            let dropDownListName  = resultObject.username;
+            let dropDownListName  = resultObject.displayName;
             let profession        = resultObject.profession;
             let memberName        = resultObject.memberName;
             let emailAddr         = resultObject.emailAddr;
@@ -190,7 +190,8 @@ function renderSettingPage(req, res, renderMessage){
             let bio               = resultObject.bio;
             let pay               = resultObject.pay;
 
-            if(!dropDownListName){ dropDownListName = resultObject.displayName; }
+
+            if(!dropDownListName){dropDownListName = resultObject.username; }
             if(!profession){ profession = ""; }
             if(!memberName){ memberName = ""; }
             if(!emailAddr){ emailAddr = ""; }
@@ -300,8 +301,8 @@ function renderHomePage(req, res){
       }
       else{
         if(resultObject){
-          let dropDownListName = resultObject.username;
-          if(!dropDownListName){dropDownListName = resultObject.displayName }
+          let dropDownListName = resultObject.displayName;
+          if(!dropDownListName){dropDownListName = resultObject.username; }
           res.render("home", {
             userAlreadyExisted: "",
             pageTitle: "Mo.Co.",
