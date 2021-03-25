@@ -1,0 +1,50 @@
+<%- include("header"); -%>
+<main class="container">
+
+  <% if(listofService.length === 0){ %>
+    <div class="starter-template text-center py-5 px-3">
+      <h1>There are no service provider yet ...</h1>
+      <p class="lead">Be the first one to provide! Start Now, and sign up!</p>
+    </div>
+    <div class="form-setting">
+      <form class="" action="/register" method="Get">
+        <button class="w-100 btn btn-lg btn-outline-primary" type="Submit">Register NOW</button>
+      </form>
+    </div>
+    <% } else{ %>
+    <div class="row row-cols-1 row-cols-md-4 mb-4 text-center">
+        <% listofService.forEach((eachService) => { %>
+
+          <div class="card-deck">
+            <div class="card mb-4 rounded-3 shadow-sm">
+              <div class="card-header py-3">
+                <h4 class="my-0 fw-normal"><%=eachService.serviceTitle%></h4>
+              </div>
+              <% if(!eachService.img.contentType) { %>
+              <img
+                src="icons/profileDefault.png"
+                alt="">
+              <% } else {%>
+              <img class="card-img-top img-thumbnail" src="data:image/<%=eachService.img.contentType%>;base64,<%=eachService.img.data.toString('base64')%>" alt="serivce image cap">
+              <% } %>
+              <div class="card-body">
+                <% if(eachService.serviceDetails.length > 100) {%>
+                <p class="card-text"><%=(eachService.serviceDetails).substring(0,100) + " ..."%></p>
+                <% } else { %>
+                <p class="card-text"><%= eachService.serviceDetails %></p>
+                <% } %>
+              </div>
+              <div class="card-footer">
+                <h1 class="small"><%=eachService.pay%><small class="text-muted fw-light">/hr</small></h1>
+                <small class="text-muted"><%=eachService.createDate%></small>
+              </div>
+              <button class="w-100 btn btn-lg btn-outline-primary" type="button">Pick this service</button>
+            </div>
+          </div>
+        <% }); %>
+    </div>
+  <% } %>
+
+
+</main>
+<%- include("footer"); -%>
