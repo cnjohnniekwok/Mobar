@@ -143,6 +143,21 @@
               <p><%=bio%></p>
             </div>
           </div>
+          <h2 class="mt-2 form-label">List a Serivce</h2>
+          <hr class="mb-4">
+          <div class="row">
+            <div class="col-md-12">
+              <form action="/private/servicePosting" method="POST"">
+                <div>
+                  <input type="hidden" name="userID" value="<%=userID%>">
+                  <label class="form-label">Service Title:</label>
+                  <input type="text" class="form-control mb-1" name="serviceTitle">
+                  <label class="form-label">Service Details:</label>
+                  <textarea class="form-control" id="exampleFormControlTextarea1" name="serviceDetails"  rows="3"></textarea>
+                  <button class="mt-2 w-100 btn btn-lg btn-outline-primary" type="Submit">List serivce!</button>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>

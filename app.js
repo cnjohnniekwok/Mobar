@@ -77,6 +77,18 @@ const imageSchema = new mongoose.Schema({
   }
 });
 
+const serviceSchema = new mongoose.Schema({
+  serviceTitle: String,
+  serviceDetails: String,
+  createDate: Date,
+  userID: String,
+  pay: String,
+  img:{
+    data: Buffer,
+    contentType: String
+  }
+});
+
 // add plugin for mongoose userPassword schema.
 // add plugin for findOrCreate package
 //-----------------------------------------------------------------|
@@ -86,14 +98,26 @@ userSchema.plugin(findOrCreate);
 // User database mongoDB mongoose model
 //-----------------------------------------------------------------|
 const User = mongoose.model("User", userSchema);
+const Service = mongoose.model("Service", serviceSchema);
 const ImageModel = new mongoose.model('Image', imageSchema);
 
 //=================================================================|
 //                      IMAGE UPLOAD STORAGE
 //-----------------------------------------------------------------|
+let imageDir = path.join(__dirname + "/uploads/");
+console.log("Checking image directory ...")
+if (!fs.existsSync(imageDir)){
+  console.log("Creating image directory -: " + imageDir);
+  fs.mkdirSync(imageDir);
+  console.log("Image upload directory created. -: " + imageDir);
+}
+else{
+  console.log("Checking image directory existed -: " + imageDir);
+}
+
 let storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads')
+        cb(null, "uploads")
     },
     filename: (req, file, cb) => {
         cb(null, file.fieldname + '-' + Date.now())
@@ -126,7 +150,7 @@ const googleOAuth20Strategy = new GoogleStrategy({ // authenticate("google")
     userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
   },
   (accessToken, refreshToken, profile, cb) => {
-     console.log(profile); // create user profile id from this callback function from passport google OAuth 2.
+    // console.log(profile); // create user profile id from this callback function from passport google OAuth 2.
     User.findOrCreate({ googleId: profile.id, displayName: profile.displayName}, (err, user) => {
       return cb(err, user);
     });
@@ -141,7 +165,7 @@ const githubOAuth20Strategy = new GitHubStrategy({
     callbackURL: "http://" + process.env.SR_HOST + ":" + process.env.PORT + "/auth/github/private",
   },
   (accessToken, refreshToken, profile, done) => {
-     console.log(profile);
+    // console.log(profile);
     User.findOrCreate({ githubId: profile.id, displayName: profile.displayName,  username:profile.username }, (err, user) => {
       return done(err, user);
     });
@@ -153,12 +177,12 @@ const githubOAuth20Strategy = new GitHubStrategy({
 // reference: https://github.com/drudge/passport-facebook-token/issues/67
 // restart application server to apply proxy change
 //-----------------------------------------------------------------|
-// const proxyAgent = new HttpsProxyAgent(process.env.HTTP_PROXY);
-//
-// // Set proxy agent to OAuth Strategies
-// //-----------------------------------------------------------------|
-// googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
-// githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
+const proxyAgent = new HttpsProxyAgent(process.env.HTTP_PROXY);
+
+// Set proxy agent to OAuth Strategies
+//-----------------------------------------------------------------|
+googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
+githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
 
 // Set Passport to use Strategies
 //-----------------------------------------------------------------|
@@ -217,7 +241,6 @@ function renderSettingPage(req, res, renderMessage){
               userAlreadyExisted: "",
               pageTitle: "Profile Settings",
               username: dropDownListName,
-              loggedout: "",
               authorized: req.isAuthenticated(),
   			      loginWith: loginWithOAuth,
               profession: profession,
@@ -282,7 +305,6 @@ function renderPrivatePage(req , res, renderMessage){ //renderMessage can be rea
               availability: resultObject.availability,
               bio: resultObject.bio,
             }); //render
-
           }); //Image
         }
       }
@@ -307,11 +329,27 @@ function renderHomePage(req, res){
             userAlreadyExisted: "",
             pageTitle: "Mo.Co.",
             username: dropDownListName,
-            loggedout: "",
             authorized: req.isAuthenticated()
           });
         }
       }
+    });
+  }
+}
+
+function renderActivePostingPage(req, res){
+  if(mongoose.connection.readyState === 1){
+    // only shows service name, and service detial,
+    // make some interface to show provider details.
+
+    //Call back hell reference: https://medium.com/codebuddies/getting-to-know-asynchronous-javascript-callbacks-promises-and-async-await-17e0673281ee
+    Service.find({},(err, resultObjectList) => {
+      res.render("activeposting", {
+        pageTitle: "Posting",
+        username: "",
+        listofService: resultObjectList,
+        authorized: req.isAuthenticated()
+      });
     });
   }
 }
@@ -337,27 +375,66 @@ function renderRegisterPage(req, res, renderMessage){
 //=================================================================|
 //                      DEMO SITE POST ROUTE
 //-----------------------------------------------------------------|
-app.post('/private/profileImageUpload', upload.single('image'), (req, res, next) => {
+app.post("/private/servicePosting", (req, res) => {
+    console.log("Service posted -: " + req.body.userID);
+    console.log(req.body);
 
-    const imagePath = path.join(__dirname + '/uploads/' + req.file.filename);
-    var obj = {
-        userID: req.body.userID,
-        img: {
-            data: fs.readFileSync(imagePath),
-            contentType: 'image/png'
-        }
-    }
-    ImageModel.findOneAndUpdate({userID: req.body.userID}, obj, {upsert: true} ,(err, item) => {
-        if (err) {
-            console.log(err);
-            fs.unlinkSync(imagePath);
-            res.redirect('/private');
-        }
-        else {
-            console.log("image uploaded.");
-            fs.unlinkSync(imagePath);
-            res.redirect('/private');
-        }
+    User.findOne({ _id: req.body.userID }, (err, resultUserObject) => {
+      if(err) { console.log(err); }
+      else{
+
+        ImageModel.findOne({ userID: resultUserObject._id }, (err, resultImageObject) => {
+          if(err) { console.log(err); }
+          else{
+
+            let postImage = {};
+            if(resultImageObject){
+              postImage = resultImageObject.img;
+            }
+
+            console.log(resultImageObject);
+            let newService = new Service({
+              serviceTitle:req.body.serviceTitle,
+              serviceDetails:req.body.serviceDetails,
+              createDate: Date.now(),
+              userID: resultUserObject._id,
+              pay: resultUserObject.pay,
+              img: postImage
+            });//ImageModel
+
+            Service.create(newService ,(err, item) => {
+                if (err) { console.log(err); }
+                else {
+                  //show something to user that the service is posted.
+                    res.redirect('/activeposting');
+                }
+              });//Service
+          }
+        });
+      }
+    });//User
+});
+
+app.post("/private/profileImageUpload", upload.single('image'), (req, res, next) => {
+  const imagePath = path.join(__dirname + '/uploads/' + req.file.filename);
+  var obj = {
+      userID: req.body.userID,
+      img: {
+          data: fs.readFileSync(imagePath),
+          contentType: 'image/png'
+      }
+  }
+  ImageModel.findOneAndUpdate({userID: req.body.userID}, obj, {upsert: true} ,(err, item) => {
+      if (err) {
+          console.log(err);
+          fs.unlinkSync(imagePath);
+          res.redirect('/private');
+      }
+      else {
+          console.log("image uploaded.");
+          fs.unlinkSync(imagePath);
+          res.redirect('/private');
+      }
     });
 });
 //reference: http://www.passportjs.org/docs/authenticate/
@@ -419,7 +496,12 @@ app.post("/settings/account", (req, res)=>{
   User.updateOne(query, update, options, (err) => {
      if(err){ console.log(err);}
      else{
-       res.redirect("/");
+       Service.updateMany({ userID: req.session.passport.user }, update, options, (err) => {
+         if(err){ console.log(err);}
+         else{
+            res.redirect("/");
+         }
+       });
      }
   });
 });
@@ -462,7 +544,6 @@ app.get("/home", (req, res) => {
   }
   else{
     res.render("home", {
-      loggedout: "",
       pageTitle: "Mo.Co.",
       username: "",
       authorized: req.isAuthenticated()
@@ -544,7 +625,7 @@ app.get("/logout", (req, res) => {
   if(req.session){
     req.logout();
     req.session.destroy();
-    res.redirect("/");
+    res.redirect("/login");
   }
 });
 
@@ -558,6 +639,9 @@ app.get("/settings", (req, res) => {
   else { res.redirect("/login"); }
 });
 
+app.get("/activeposting", (req, res) => {
+  renderActivePostingPage(req, res, "");
+});
 
 //=================================================================|
 //                    OTHER SERVER RESPONSE
