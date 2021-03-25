@@ -30,6 +30,13 @@
         <h5>
           <%=profession%>
         </h5>
+        <h5>
+          <form class="" action="/myposts" method="POST">
+            <input type="hidden" name="userID" value="<%=userID%>">
+            Current listing services (<%=serivceCount%>)
+            <button class="btn btn-outline-secondary btn-sm" type="Submit">view</button>
+          </form>
+        </h5>
       </div>
     </div>
   </div>

@@ -49,6 +49,7 @@ mongoose.connect("mongodb://" + process.env.DB_HOST + ":" + process.env.DB_PORT 
   useUnifiedTopology: true
 });
 mongoose.set('useCreateIndex', true);
+mongoose.set('useFindAndModify', false);
 
 const userSchema = mongoose.Schema({
   username: String,
@@ -177,12 +178,12 @@ const githubOAuth20Strategy = new GitHubStrategy({
 // reference: https://github.com/drudge/passport-facebook-token/issues/67
 // restart application server to apply proxy change
 //-----------------------------------------------------------------|
-const proxyAgent = new HttpsProxyAgent(process.env.HTTP_PROXY);
-
-// Set proxy agent to OAuth Strategies
-//-----------------------------------------------------------------|
-googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
-githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
+// const proxyAgent = new HttpsProxyAgent(process.env.HTTP_PROXY);
+//
+// // Set proxy agent to OAuth Strategies
+// //-----------------------------------------------------------------|
+// googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
+// githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
 
 // Set Passport to use Strategies
 //-----------------------------------------------------------------|
@@ -278,32 +279,40 @@ function renderPrivatePage(req , res, renderMessage){ //renderMessage can be rea
               res.status(500).send('An error occurred', err);
             }
 
-            if(!resultImage){resultImage = "NOIMAGE";};
+            Service.find({ userID: resultObject._id },(err, resultService) => {
+              if (err) {
+                console.log(err);
+                res.status(500).send('An error occurred', err);
+              }
 
-            let imageErroMessage = req.body.imageErroMessage;
-            if(!imageErroMessage){ imageErroMessage = "";}
-            console.log(resultImage);
+              if(!resultImage){resultImage = "NOIMAGE";};
 
-            let dropDownListName = resultObject.displayName;
-            if(!dropDownListName){dropDownListName = resultObject.username; }
-            res.render("private", {
-              imageErroMessage: renderMessage,
-              pageTitle: "Authenticated!",
-              username: dropDownListName,
-              authorized: req.isAuthenticated(),
-              userID: resultObject._id,
-              image: resultImage,
-              displayName: dropDownListName,
-              profession: resultObject.profession,
-              memberName: resultObject.memberName,
-              emailAddr: resultObject.emailAddr,
-              phoneNumber: resultObject.phoneNumber,
-              experience: resultObject.experience,
-              pay: resultObject.pay,
-              projectCount: resultObject.projectCount,
-              language: resultObject.language,
-              availability: resultObject.availability,
-              bio: resultObject.bio,
+              let imageErroMessage = req.body.imageErroMessage;
+              if(!imageErroMessage){ imageErroMessage = "";}
+              //console.log(resultImage);
+
+              let dropDownListName = resultObject.displayName;
+              if(!dropDownListName){dropDownListName = resultObject.username; }
+              res.render("private", {
+                imageErroMessage: renderMessage,
+                pageTitle: "Authenticated!",
+                username: dropDownListName,
+                authorized: req.isAuthenticated(),
+                userID: resultObject._id,
+                image: resultImage,
+                displayName: dropDownListName,
+                profession: resultObject.profession,
+                memberName: resultObject.memberName,
+                emailAddr: resultObject.emailAddr,
+                phoneNumber: resultObject.phoneNumber,
+                experience: resultObject.experience,
+                pay: resultObject.pay,
+                projectCount: resultObject.projectCount,
+                language: resultObject.language,
+                availability: resultObject.availability,
+                bio: resultObject.bio,
+                serivceCount: resultService.length
+              }); //service
             }); //render
           }); //Image
         }
@@ -337,20 +346,38 @@ function renderHomePage(req, res){
   }
 }
 
-function renderActivePostingPage(req, res){
-  if(mongoose.connection.readyState === 1){
-    // only shows service name, and service detial,
-    // make some interface to show provider details.
+function renderAcitvePosting_sub(ejs, res, username, resultobjList, isAuth){
+  res.render(ejs, {
+    pageTitle: "Posting",
+    username: username,
+    listofService: resultobjList,
+    authorized: isAuth
+  }); //render
+}
 
-    //Call back hell reference: https://medium.com/codebuddies/getting-to-know-asynchronous-javascript-callbacks-promises-and-async-await-17e0673281ee
-    Service.find({},(err, resultObjectList) => {
-      res.render("activeposting", {
-        pageTitle: "Posting",
-        username: "",
-        listofService: resultObjectList,
-        authorized: req.isAuthenticated()
-      });
-    });
+function renderActivePostingPage(ejs, req, res, query){
+  if(mongoose.connection.readyState === 1){
+    if(req.isAuthenticated()) {
+      const currentUser = req.session.passport.user;
+      User.findOne({ _id: currentUser}, (err, resultObject) => {
+        if(err){ console.log(err); }
+        else{
+          let dropDownListName = resultObject.displayName;
+          if(!dropDownListName){dropDownListName = resultObject.username; }
+          // only shows service name, and service detial,
+          // make some interface to show provider details.
+          //Call back hell reference: https://medium.com/codebuddies/getting-to-know-asynchronous-javascript-callbacks-promises-and-async-await-17e0673281ee
+          Service.find(query,(err, resultObjectList) => {
+            renderAcitvePosting_sub(ejs, res, dropDownListName, resultObjectList, req.isAuthenticated());
+          }); //service
+        }
+      }); //user
+    }
+    else{
+      Service.find(query,(err, resultObjectList) => {
+        renderAcitvePosting_sub(ejs, res, "", resultObjectList, req.isAuthenticated());
+      }); //service
+    }
   }
 }
 
@@ -375,9 +402,15 @@ function renderRegisterPage(req, res, renderMessage){
 //=================================================================|
 //                      DEMO SITE POST ROUTE
 //-----------------------------------------------------------------|
+app.post("/myposts", (req, res) => {
+  //console.log(req.body.userID);
+  let query = { userID: req.body.userID };
+  renderActivePostingPage("myposts", req, res, query);
+});
+
 app.post("/private/servicePosting", (req, res) => {
     console.log("Service posted -: " + req.body.userID);
-    console.log(req.body);
+    //console.log(req.body);
 
     User.findOne({ _id: req.body.userID }, (err, resultUserObject) => {
       if(err) { console.log(err); }
@@ -392,7 +425,7 @@ app.post("/private/servicePosting", (req, res) => {
               postImage = resultImageObject.img;
             }
 
-            console.log(resultImageObject);
+            //console.log(resultImageObject);
             let newService = new Service({
               serviceTitle:req.body.serviceTitle,
               serviceDetails:req.body.serviceDetails,
@@ -432,8 +465,13 @@ app.post("/private/profileImageUpload", upload.single('image'), (req, res, next)
       }
       else {
           console.log("image uploaded.");
-          fs.unlinkSync(imagePath);
-          res.redirect('/private');
+          Service.updateMany({ userID: req.body.userID }, obj, {upsert: true}, (err) => {
+            if(err){ console.log(err);}
+            else{
+              fs.unlinkSync(imagePath);
+              res.redirect('/private');
+            }
+          });
       }
     });
 });
@@ -487,12 +525,12 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/settings/account", (req, res)=>{
-  console.log(req.body);
+  //console.log(req.body);
   let query = { _id: req.session.passport.user};
   let update = { $set: req.body };
   let options = { upsert: true, new: true, setDefaultsOnInsert: true };
 
-  console.log(req.body)
+  //console.log(req.body)
   User.updateOne(query, update, options, (err) => {
      if(err){ console.log(err);}
      else{
@@ -640,7 +678,8 @@ app.get("/settings", (req, res) => {
 });
 
 app.get("/activeposting", (req, res) => {
-  renderActivePostingPage(req, res, "");
+  let query = {};
+  renderActivePostingPage("activeposting", req, res, query);
 });
 
 //=================================================================|
