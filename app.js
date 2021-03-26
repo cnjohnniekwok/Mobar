@@ -168,7 +168,7 @@ passport.deserializeUser((id, done) => {
 const googleOAuth20Strategy = new GoogleStrategy({ // authenticate("google")
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://" + process.env.SR_HOST + ":" + process.env.PORT + "/auth/google/private",
+    callbackURL: "http://" + process.env.SERVER_URI + "/auth/google/private",
     userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
   },
   (accessToken, refreshToken, profile, done) => {
@@ -185,7 +185,7 @@ const googleOAuth20Strategy = new GoogleStrategy({ // authenticate("google")
 const githubOAuth20Strategy = new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    callbackURL: "http://" + process.env.SR_HOST + ":" + process.env.PORT + "/auth/github/private",
+    callbackURL: "http://" + process.env.SERVER_URI + "/auth/github/private",
   },
   (accessToken, refreshToken, profile, done) => {
     // console.log(profile);
@@ -201,7 +201,7 @@ const githubOAuth20Strategy = new GitHubStrategy({
 const facebookOAuthStrategy =  new FacebookStrategy({
     clientID: process.env.FACEBOOK_APP_ID,
     clientSecret: process.env.FACEBOOK_APP_SECRET,
-    callbackURL: "http://" + process.env.SR_HOST + ":" + process.env.PORT + "/auth/facebook/private",
+    callbackURL: "http://" + process.env.SERVER_URI + "/auth/facebook/private",
   },
   (accessToken, refreshToken, profile, done) => {
     // console.log(profile);
@@ -228,12 +228,12 @@ const proxyAgent = new HttpsProxyAgent(process.env.HTTP_PROXY);
 
 // Set proxy agent to OAuth Strategies
 //-----------------------------------------------------------------|
-googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
-githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
-facebookOAuthStrategy._oauth2.setAgent(proxyAgent);
-
-// Set Passport to use Strategies
-//-----------------------------------------------------------------|
+// googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
+// githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
+// facebookOAuthStrategy._oauth2.setAgent(proxyAgent);
+//
+// // Set Passport to use Strategies
+// //-----------------------------------------------------------------|
 passport.use(googleOAuth20Strategy);
 passport.use(githubOAuth20Strategy);
 passport.use(facebookOAuthStrategy);
@@ -421,8 +421,8 @@ function renderActivePostingPage(ejs, req, res, query){
           // make some interface to show provider details.
           //Call back hell reference: https://medium.com/codebuddies/getting-to-know-asynchronous-javascript-callbacks-promises-and-async-await-17e0673281ee
           Service.find(query,(err, resultObjectList) => {
-            console.log("at -:" + ejs + " return results -:");
-            console.log(resultObjectList);
+            // console.log("at -:" + ejs + " return results -:");
+            // console.log(resultObjectList);
             renderAcitvePosting_sub(ejs, res, dropDownListName, resultObjectList, req.isAuthenticated());
           }); //service
         }
