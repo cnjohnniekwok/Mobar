@@ -47,7 +47,9 @@ app.use(passport.session());
 //-----------------------------------------------------------------|
 // Some day in the future I will be dealing with this cloud server env variables...
 //reference: https://devcenter.heroku.com/articles/config-vars
-mongoose.connect("mongodb://" + process.env.DB_HOST + ":" + process.env.DB_PORT + "/" + process.env.DB_NAME, {
+let devMongoDBURI="mongodb://" + process.env.DB_HOST + ":" + process.env.DB_PORT + "/" + process.env.DB_NAME;
+let prdMongoDBURI="mongodb+srv://" + process.env.DB_USER + ":" + process.env.DB_PSWD + "@cluster0.gugxn.mongodb.net/" + process.env.DB_NAME;
+mongoose.connect(prdMongoDBURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
