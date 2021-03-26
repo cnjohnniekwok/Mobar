@@ -1,0 +1,86 @@
+<%- include("header"); -%>
+<div class="container emp-profile">
+  <div class="row">
+    <div class="col-md-4">
+      <div class="profile-img">
+        <% if(image === "NOIMAGE") { %>
+        <img
+          src="icons/profileDefault.png"
+          alt="">
+        <% } else {%>
+        <img src="data:image/<%=image.img.contentType%>;base64,<%=image.img.data.toString('base64')%>" alt="profile Image" />
+        <% } %>
+        <div class="file btn btn-lg btn-primary">
+          Change Profile Picture
+          <form action="/private/profileImageUpload" method="POST" enctype="multipart/form-data">
+            <div>
+              <input type="hidden" name="userID" value="<%=userID%>">
+              <input type="file" id="image" name="image" required onchange="form.submit()">
+            </div>
+            <p><%=imageErroMessage%></p>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="profile-head">
+        <p>
+          <h2>
+            <%=displayName%>
+          </h2>
+          <h5>
+            <em><%=profession%></em>
+          </h5>
+        </p>
+        <h5>
+          Current listing services (<%=serivceCount%>)
+        </h5>
+          <form class="" action="/myposts" method="GET">
+            <input type="hidden" name="userID" value="<%=userID%>">
+            <button class="mt-2 w-100 btn btn-outline-secondary btn-sm" type="Submit">View my services</button>
+          </form>
+            <a href="/settings" class="mt-1 w-100 btn btn-outline-secondary btn-sm" role="button">Profile Settings</a>
+            <a href="/listService" class="mt-1 w-100 btn btn-outline-primary btn-sm" role="button">List new service</a>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="profile-work">
+        <p>WORK LINK</p>
+        <a href="">Website Link</a><br />
+        <a href="">Bootsnipp Profile</a><br />
+        <a href="">Bootply Profile</a>
+        <p>SKILLS</p>
+        <a href="">Web Designer</a><br />
+        <a href="">Web Developer</a><br />
+        <a href="">WordPress</a><br />
+        <a href="">WooCommerce</a><br />
+        <a href="">PHP, .Net</a><br />
+      </div>
+    </div>
+    <div class="col-md-8">
+
+      <div class="profile-tab">
+        <div class="">
+          <h2 class="mt-2 form-label" id="listNewSerivce">List a Serivce</h2>
+          <hr class="mb-4">
+          <div class="row">
+            <div class="col-md-12">
+              <form action="/private/servicePosting" method="POST"">
+                <div>
+                  <input type="hidden" name="userID" value="<%=userID%>">
+                  <label class="form-label">Service Title:</label>
+                  <input type="text" class="w-100 form-control mb-1" name="serviceTitle" required>
+                  <label class="form-label">Service Details:</label>
+                  <textarea class="form-control" id="exampleFormControlTextarea1" name="serviceDetails"  rows="3" required></textarea>
+                  <button class="mt-2 btn btn-lg btn-outline-primary" type="Submit">List serivce!</button>
+              </form>
+            </div>
+          </div>
+        </div> <!-- -->
+      </div><!-- -->
+    </div>
+  </div>
+</div>
+<%- include("footer"); -%>

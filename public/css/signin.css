@@ -85,8 +85,27 @@ body {
 }
 
 .mainBody {
-  margin-top: 10%;
-  margin-bottom: 50%;
+  margin-top: 5%;
+  margin-bottom: 5%;
+}
+
+/*Home PAge*/
+.title-image {
+  width: 70%;
+}
+
+.feature-box{
+  text-align: center;
+}
+
+.white-section{
+  background-color: rgba(255, 255, 255, 0.5);
+  padding: 100px;
+}
+
+.welcome-text{
+  padding-top: 15%;
+  margin-bottom: 15%
 }
 
 /*mypost and active service posting*/
@@ -116,6 +135,22 @@ img.service-image {
 .nounderline {
   text-decoration: none !important
 }
+
+@media only screen and (max-width: 765px) {
+  .welcome-text{
+    text-align: center;
+    padding-top: 10%;
+    margin-bottom: 10%
+  }
+}
+
+@media only screen and (max-width: 375px) {
+}
+
+@media only screen and (max-width: 320px) {
+
+}
+
 
 /*Responsive button for smaller screen*/
 @include media-breakpoint-between(xs,sm){

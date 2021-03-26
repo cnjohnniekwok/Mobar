@@ -319,7 +319,7 @@ function renderSettingPage(req, res, renderMessage){
   }
 }
 
-function renderPrivatePage(req , res, renderMessage){ //renderMessage can be reanderObjects for multi input
+function renderPrivatePage(ejs, req , res, renderMessage){ //renderMessage can be reanderObjects for multi input
   if(mongoose.connection.readyState === 1){
     User.findOne({_id:req.session.passport.user},(err,resultObject)=>{
       if(err){
@@ -348,7 +348,7 @@ function renderPrivatePage(req , res, renderMessage){ //renderMessage can be rea
 
               let dropDownListName = resultObject.displayName;
               if(!dropDownListName){dropDownListName = resultObject.username; }
-              res.status(200).render("private", {
+              res.status(200).render(ejs, {
                 imageErroMessage: renderMessage,
                 pageTitle: dropDownListName,
                 username: dropDownListName,
@@ -569,7 +569,7 @@ app.post("/settings/account", (req, res)=>{
      if(err){ console.log(err);}
      else{
 
-       Service.updateMany({ userID: req.session.passport.user }, update, options, (err) => {
+       Service.updateMany({ userID: req.session.passport.user }, update, { upsert: false } , (err) => {
          if(err){ console.log(err);}
          else{
             res.status(200).redirect("/private");
@@ -759,9 +759,15 @@ app.get("/auth/facebook/private",
 //-----------------------------------------------------------------|
 // "/private" route relies on passport to authenticate
 //-----------------------------------------------------------------|
+app.get("/listService", (req, res) => {
+  if (req.isAuthenticated()) {
+    renderPrivatePage("listService", req , res, "")
+  } else { res.status(200).redirect("/login"); }
+});
+
 app.get("/private", (req, res) => {
   if (req.isAuthenticated()) {
-    renderPrivatePage(req, res, "");
+    renderPrivatePage("private",req, res, "");
   } else { res.status(200).redirect("/login"); }
 });
 

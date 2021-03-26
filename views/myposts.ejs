@@ -1,5 +1,5 @@
 <%- include("header"); -%>
-<div class="container">
+<main class="container">
 
   <% if(listofService.length === 0){ %>
     <div class="starter-template text-center py-5 px-3">
@@ -13,50 +13,50 @@
     </div>
     <% } else{ %>
     <div class="row">
-        <% listofService.forEach((eachService) => { %>
+        <% for (let i = listofService.length - 1; i >= 0; i--){%>
           <div class="col-lg-3 mb-3">
             <div class="card service-card">
-              <% if(!eachService.img.contentType) { %>
+              <% if(!listofService[i].img.contentType) { %>
               <img
                 class="service-image card-img-top img-thumbnail"
                 src="icons/profileDefault.png"
                 alt="">
               <% } else {%>
-              <img class="service-image card-img-top img-thumbnail" src="data:image/<%=eachService.img.contentType%>;base64,<%=eachService.img.data.toString('base64')%>" alt="serivce image cap">
+              <img class="service-image card-img-top img-thumbnail" src="data:image/<%=listofService[i].img.contentType%>;base64,<%=listofService[i].img.data.toString('base64')%>" alt="serivce image cap">
               <% } %>
               <div class="card-body">
-                <h5 class="card-title"><%=eachService.serviceTitle%></h5>
-                <% if(!eachService.pay){ %>
+                <h5 class="card-title"><%=listofService[i].serviceTitle%></h5>
+                <% if(!listofService[i].pay){ %>
                   <h1 class="small">Free<small class="text-muted fw-light">/hr</small></h1>
                 <% } else {%>
-                  <h1 class="small"><%=eachService.pay%><small class="text-muted fw-light">/hr</small></h1>
+                  <h1 class="small"><%=listofService[i].pay%><small class="text-muted fw-light">/hr</small></h1>
                 <% } %>
                 <hr class="mb-4">
-                <% if(eachService.serviceDetails.length > 100) {%>
-                <p class="card-text"><%=(eachService.serviceDetails).substring(0,100) + " ..."%></p>
+                <% if(listofService[i].serviceDetails.length > 100) {%>
+                <p class="card-text"><%=(listofService[i].serviceDetails).substring(0,100) + " ..."%></p>
                 <% } else { %>
-                <p class="card-text"><%= eachService.serviceDetails %></p>
+                <p class="card-text"><%= listofService[i].serviceDetails %></p>
                 <% } %>
                 <div>
                   <a href="/" class="btn btn-outline-success btn-sm">Read More</a>
                   <a href="" class="btn btn-outline-danger btn-sm"><i class="far fa-heart"></i></a>
                 </div>
-                <small class="mt-1 text-muted">Posted on: <%=eachService.createDate.getDate()%>-<%=eachService.createDate.getMonth()+1%>-<%=eachService.createDate.getFullYear()%></small>
+                <small class="mt-1 text-muted">Posted on: <%=listofService[i].createDate.getDate()%>-<%=listofService[i].createDate.getMonth()+1%>-<%=listofService[i].createDate.getFullYear()%></small>
               </div>
               <div class="card-footer">
                 <form class="" action="/" method="GET">
-                  <input type="hidden" name="unlistServiceID" value="<%=eachService._id%>">
+                  <input type="hidden" name="unlistServiceID" value="<%=listofService[i]._id%>">
                   <button class="w-100 btn btn-sm btn-outline-secondary" type="Submit" disabled>Edit service</button>
                 </form>
                 <form class="" action="/private/serviceUnlisting" method="POST">
-                  <input type="hidden" name="unlistServiceID" value="<%=eachService._id%>">
+                  <input type="hidden" name="unlistServiceID" value="<%=listofService[i]._id%>">
                   <button class="mt-1 w-100 btn btn-sm btn-outline-danger" type="Submit">Unlist service</button>
                 </form>
               </div>
             </div>
           </div>
-        <% }); %>
+        <% } %>
     </div>
   <% } %>
- </div>
+</main>
 <%- include("footer"); -%>
