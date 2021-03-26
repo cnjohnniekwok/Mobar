@@ -4,9 +4,7 @@
     <div class="col-md-4">
       <div class="profile-img">
         <% if(image === "NOIMAGE") { %>
-        <img
-          src="icons/profileDefault.png"
-          alt="">
+        <img src="icons/profileDefault.png" alt="">
         <% } else {%>
         <img src="data:image/<%=image.img.contentType%>;base64,<%=image.img.data.toString('base64')%>" alt="profile Image" />
         <% } %>
@@ -25,22 +23,22 @@
     <div class="col-md-6">
       <div class="profile-head">
         <p>
-          <h2>
-            <%=displayName%>
-          </h2>
-          <h5>
-            <em><%=profession%></em>
-          </h5>
+        <h2>
+          <%=displayName%>
+        </h2>
+        <h5>
+          <em><%=profession%></em>
+        </h5>
         </p>
         <h5>
           Current listing services (<%=serivceCount%>)
         </h5>
-          <form class="" action="/myposts" method="GET">
-            <input type="hidden" name="userID" value="<%=userID%>">
-            <button class="mt-2 w-100 btn btn-outline-secondary btn-sm" type="Submit">View my services</button>
-          </form>
-            <a href="/settings" class="mt-1 w-100 btn btn-outline-secondary btn-sm" role="button">Profile Settings</a>
-            <a href="/listService" class="mt-1 w-100 btn btn-outline-primary btn-sm" role="button">List new service</a>
+        <form class="" action="/myposts" method="GET">
+          <input type="hidden" name="userID" value="<%=userID%>">
+          <button class="mt-2 w-100 btn btn-outline-secondary btn-sm" type="Submit">View my services</button>
+        </form>
+        <a href="/settings" class="mt-1 w-100 btn btn-outline-secondary btn-sm" role="button">Profile Settings</a>
+        <a href="/listService" class="mt-1 w-100 btn btn-outline-primary btn-sm" role="button">List New Service</a>
       </div>
     </div>
   </div>
@@ -160,12 +158,12 @@
             <div class="col-md-12">
               <form action="/private/servicePosting" method="POST"">
                 <div>
-                  <input type="hidden" name="userID" value="<%=userID%>">
-                  <label class="form-label">Service Title:</label>
-                  <input type="text" class="w-100 form-control mb-1" name="serviceTitle" required>
-                  <label class="form-label">Service Details:</label>
-                  <textarea class="form-control" id="exampleFormControlTextarea1" name="serviceDetails"  rows="3" required></textarea>
-                  <button class="mt-2 btn btn-lg btn-outline-primary" type="Submit">List serivce!</button>
+                  <input type=" hidden" name="userID" value="<%=userID%>">
+                <label class="form-label">Service Title:</label>
+                <input type="text" class="w-100 form-control mb-1" name="serviceTitle" required>
+                <label class="form-label">Service Details:</label>
+                <textarea class="form-control" id="exampleFormControlTextarea1" name="serviceDetails" rows="3" required></textarea>
+                <button class="mt-2 btn btn-lg btn-outline-primary" type="Submit">List serivce!</button>
               </form>
             </div>
           </div>
