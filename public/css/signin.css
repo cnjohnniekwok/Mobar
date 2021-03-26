@@ -93,13 +93,13 @@ body {
 img.service-image {
   background-color:#ffff;
   opacity:0.9;
-  border-radius:30px;
+  border-radius:20px;
   height: 150px;
   object-fit: cover;
 }
 
 .service-card {
-  border-radius:30px;
+  border-radius:20px;
 }
 
 .navbar, .service-card{
@@ -139,7 +139,7 @@ img.service-image {
 .profile-img img{
     width: 70%;
     height: 100%;
-    border-radius: 30px;
+    border-radius: 0px;
 }
 
 .profile-img .file {
