@@ -105,7 +105,8 @@ body {
 
 .welcome-text{
   padding-top: 15%;
-  margin-bottom: 15%
+  padding-left: 15%;
+  margin-bottom: 15%;
 }
 
 /*mypost and active service posting*/
@@ -140,6 +141,7 @@ img.service-image {
   .welcome-text{
     text-align: center;
     padding-top: 10%;
+    padding-left: 0;
     margin-bottom: 10%
   }
 }
