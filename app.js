@@ -170,7 +170,7 @@ passport.deserializeUser((id, done) => {
 const googleOAuth20Strategy = new GoogleStrategy({ // authenticate("google")
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://" + process.env.SERVER_URI + "/auth/google/private",
+    callbackURL: process.env.SERVER_URI + "/auth/google/private",
     userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
   },
   (accessToken, refreshToken, profile, done) => {
@@ -187,7 +187,7 @@ const googleOAuth20Strategy = new GoogleStrategy({ // authenticate("google")
 const githubOAuth20Strategy = new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    callbackURL: "http://" + process.env.SERVER_URI + "/auth/github/private",
+    callbackURL: process.env.SERVER_URI + "/auth/github/private",
   },
   (accessToken, refreshToken, profile, done) => {
     // console.log(profile);
@@ -203,7 +203,7 @@ const githubOAuth20Strategy = new GitHubStrategy({
 const facebookOAuthStrategy =  new FacebookStrategy({
     clientID: process.env.FACEBOOK_APP_ID,
     clientSecret: process.env.FACEBOOK_APP_SECRET,
-    callbackURL: "http://" + process.env.SERVER_URI + "/auth/facebook/private",
+    callbackURL: process.env.SERVER_URI + "/auth/facebook/private",
   },
   (accessToken, refreshToken, profile, done) => {
     // console.log(profile);
