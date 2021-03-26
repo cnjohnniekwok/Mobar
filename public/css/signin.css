@@ -7,6 +7,7 @@ body {
   padding-top: 40px;
   padding-bottom: 40px;
   background-color: #FAF3E0;
+  font-family: 'Montserrat Alternates', sans-serif;
 }
 
 .private_page{
@@ -88,7 +89,19 @@ body {
   margin-bottom: 50%;
 }
 
-.navbar{
+/*mypost and active service posting*/
+.service-image {
+  background-color:#ffff;
+  opacity:0.75;
+  border-radius:30px;
+  object-fit: scale-down;
+}
+
+.service-card {
+  border-radius:30px;
+}
+
+.navbar, .service-card{
     box-shadow: 0 4px 18px 0 rgba(0,0,0,.12), 0 7px 10px -5px rgba(0,0,0,.15) !important;
 }
 
@@ -117,13 +130,17 @@ body {
     margin-bottom: 3%;
     border-radius: 0.5rem;
 }
-.profile-img{
+
+.profile-img {
     text-align: center;
 }
+
 .profile-img img{
     width: 70%;
     height: 100%;
+    border-radius: 30px;
 }
+
 .profile-img .file {
     position: relative;
     overflow: hidden;
@@ -201,4 +218,9 @@ body {
 .profile-tab p{
     font-weight: 600;
     color: #0062cc;
+}
+
+/*Sign in button*/
+a.btn-social {
+  font-size: 100%;
 }

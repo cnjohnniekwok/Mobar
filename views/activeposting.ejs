@@ -12,39 +12,47 @@
       </form>
     </div>
     <% } else{ %>
-    <div class="row row-cols-1 row-cols-md-4 mb-4 text-center">
-        <% listofService.forEach((eachService) => { %>
-
-          <div class="card-deck">
-            <div class="card mb-4 rounded-3 shadow-sm">
-              <div class="card-header py-3">
-                <h4 class="my-0 fw-normal"><%=eachService.serviceTitle%></h4>
-              </div>
-              <% if(!eachService.img.contentType) { %>
-              <img
-                src="icons/profileDefault.png"
-                alt="">
-              <% } else {%>
-              <img class="card-img-top img-thumbnail" src="data:image/<%=eachService.img.contentType%>;base64,<%=eachService.img.data.toString('base64')%>" alt="serivce image cap">
-              <% } %>
-              <div class="card-body">
-                <% if(eachService.serviceDetails.length > 100) {%>
-                <p class="card-text"><%=(eachService.serviceDetails).substring(0,100) + " ..."%></p>
-                <% } else { %>
-                <p class="card-text"><%= eachService.serviceDetails %></p>
+      <div class="row">
+          <% listofService.forEach((eachService) => { %>
+            <div class="col-lg-3 mb-3">
+              <div class="card service-card">
+                <% if(!eachService.img.contentType) { %>
+                <img
+                  class="service-image card-img-top img-thumbnail"
+                  src="icons/profileDefault.png"
+                  alt="">
+                <% } else {%>
+                <img class="service-image card-img-top img-thumbnail" src="data:image/<%=eachService.img.contentType%>;base64,<%=eachService.img.data.toString('base64')%>" alt="serivce image cap">
                 <% } %>
+                <div class="card-body">
+                  <h5 class="card-title"><%=eachService.serviceTitle%></h5>
+                  <% if(!eachService.pay){ %>
+                    <h1 class="small">Free<small class="text-muted fw-light">/hr</small></h1>
+                  <% } else {%>
+                    <h1 class="small"><%=eachService.pay%><small class="text-muted fw-light">/hr</small></h1>
+                  <% } %>
+                  <hr class="mb-4">
+                  <% if(eachService.serviceDetails.length > 100) {%>
+                  <p class="card-text"><%=(eachService.serviceDetails).substring(0,100) + " ..."%></p>
+                  <% } else { %>
+                  <p class="card-text"><%= eachService.serviceDetails %></p>
+                  <% } %>
+                  <div>
+                    <a href="" class="btn btn-outline-success btn-sm">Read More</a>
+                    <a href="" class="btn btn-outline-danger btn-sm"><i class="far fa-heart"></i></a>
+                  </div>
+                  <small class="mt-1 text-muted">Posted on: <%=eachService.createDate.getDate()%>-<%=eachService.createDate.getMonth()%>-<%=eachService.createDate.getFullYear()%></small>
+                </div>
+                <div class="card-footer">
+                  <form class="" action="/" method="GET">
+                    <input type="hidden" name="unlistServiceID" value="<%=eachService._id%>">
+                    <button class="w-100 btn btn-lg btn-outline-primary" type="Submit">Pick this service</button>
+                  </form>
+                </div>
               </div>
-              <div class="card-footer">
-                <h1 class="small"><%=eachService.pay%><small class="text-muted fw-light">/hr</small></h1>
-                <small class="text-muted"><%=eachService.createDate%></small>
-              </div>
-              <button class="w-100 btn btn-lg btn-outline-primary" type="button">Pick this service</button>
             </div>
-          </div>
-        <% }); %>
-    </div>
-  <% } %>
-
-
-</main>
+          <% }); %>
+      </div>
+    <% } %>
+   </div>
 <%- include("footer"); -%>

@@ -24,19 +24,23 @@
     </div>
     <div class="col-md-6">
       <div class="profile-head">
-        <h2>
-          <%=displayName%>
-        </h2>
+        <p>
+          <h2>
+            <%=displayName%>
+          </h2>
+          <h5>
+            <em><%=profession%></em>
+          </h5>
+        </p>
         <h5>
-          <%=profession%>
+          Current listing services (<%=serivceCount%>)
         </h5>
-        <h5>
-          <form class="" action="/myposts" method="POST">
+          <form class="" action="/myposts" method="GET">
             <input type="hidden" name="userID" value="<%=userID%>">
-            Current listing services (<%=serivceCount%>)
-            <button class="btn btn-outline-secondary btn-sm" type="Submit">view</button>
+            <button class="mt-2 w-100 btn btn-outline-secondary btn-sm" type="Submit">View my services</button>
           </form>
-        </h5>
+            <a href="/settings" class="mt-1 w-100 btn btn-outline-secondary btn-sm" role="button">Profile Settings</a>
+            <a href="#listNewSerivce" class="mt-1 w-100 btn btn-outline-primary btn-sm" role="button">List new service</a>
       </div>
     </div>
   </div>
@@ -150,7 +154,7 @@
               <p><%=bio%></p>
             </div>
           </div>
-          <h2 class="mt-2 form-label">List a Serivce</h2>
+          <h2 class="mt-2 form-label" id="listNewSerivce">List a Serivce</h2>
           <hr class="mb-4">
           <div class="row">
             <div class="col-md-12">
@@ -158,10 +162,10 @@
                 <div>
                   <input type="hidden" name="userID" value="<%=userID%>">
                   <label class="form-label">Service Title:</label>
-                  <input type="text" class="form-control mb-1" name="serviceTitle">
+                  <input type="text" class="w-100 form-control mb-1" name="serviceTitle" required>
                   <label class="form-label">Service Details:</label>
-                  <textarea class="form-control" id="exampleFormControlTextarea1" name="serviceDetails"  rows="3"></textarea>
-                  <button class="mt-2 w-100 btn btn-lg btn-outline-primary" type="Submit">List serivce!</button>
+                  <textarea class="form-control" id="exampleFormControlTextarea1" name="serviceDetails"  rows="3" required></textarea>
+                  <button class="mt-2 btn btn-lg btn-outline-primary" type="Submit">List serivce!</button>
               </form>
             </div>
           </div>

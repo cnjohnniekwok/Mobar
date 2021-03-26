@@ -10,10 +10,11 @@ const session = require("express-session");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const findOrCreate = require("mongoose-findorcreate"); // just to make findOrCreate work.
-const GoogleStrategy = require("passport-google-oauth20").Strategy; // Google OAuth20
+const multer = require('multer'); //for image uploading use.
+const FacebookStrategy = require("passport-facebook").Strategy;
+const GoogleStrategy  = require("passport-google-oauth20").Strategy; // Google OAuth20
 const GitHubStrategy = require("passport-github2").Strategy; // passport-github2;
 const HttpsProxyAgent = require('https-proxy-agent'); //proxy... just need to do this anyway..
-const multer = require('multer'); //for image uploading use.
 
 // Initalize app using express
 const app = express();
@@ -39,23 +40,33 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// need to use createIndex otherwise its depreated
 //-----------------------------------------------------------------|
-
+////////////////////////////////////////////////////////////////////
+//=================================================================|
+//                  MONGOOSE DATABASE CONNECTION
+//-----------------------------------------------------------------|
 // Some day in the future I will be dealing with this cloud server env variables...
 //reference: https://devcenter.heroku.com/articles/config-vars
 mongoose.connect("mongodb://" + process.env.DB_HOST + ":" + process.env.DB_PORT + "/" + process.env.DB_NAME, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
+// need to use createIndex and useFindAndModify otherwise its depreated
+//-----------------------------------------------------------------|
 mongoose.set('useCreateIndex', true);
 mongoose.set('useFindAndModify', false);
 
+//-----------------------------------------------------------------|
+////////////////////////////////////////////////////////////////////
+//=================================================================|
+//                   MONGOOSE DATABASE SCHEMA
+//-----------------------------------------------------------------|
 const userSchema = mongoose.Schema({
   username: String,
   password: String,
   googleId : String,
   githubId : String,
+  facebookId: String,
   displayName: String,
   profession: String,
   memberName: String,
@@ -70,24 +81,24 @@ const userSchema = mongoose.Schema({
 });
 
 const imageSchema = new mongoose.Schema({
-  userID: String,
-  name: String,
   img:{
     data: Buffer,
     contentType: String
-  }
+  },
+  userID: String,
+  name: String,
 });
 
 const serviceSchema = new mongoose.Schema({
+  img:{
+    data: Buffer,
+    contentType: String
+  },
   serviceTitle: String,
   serviceDetails: String,
   createDate: Date,
   userID: String,
   pay: String,
-  img:{
-    data: Buffer,
-    contentType: String
-  }
 });
 
 // add plugin for mongoose userPassword schema.
@@ -96,12 +107,19 @@ const serviceSchema = new mongoose.Schema({
 userSchema.plugin(passportLocalMongoose);
 userSchema.plugin(findOrCreate);
 
+//-----------------------------------------------------------------|
+////////////////////////////////////////////////////////////////////
+//=================================================================|
+//                   MONGOOSE DOCUMENT MODEL
+//-----------------------------------------------------------------|
 // User database mongoDB mongoose model
 //-----------------------------------------------------------------|
 const User = mongoose.model("User", userSchema);
 const Service = mongoose.model("Service", serviceSchema);
 const ImageModel = new mongoose.model('Image', imageSchema);
 
+//-----------------------------------------------------------------|
+////////////////////////////////////////////////////////////////////
 //=================================================================|
 //                      IMAGE UPLOAD STORAGE
 //-----------------------------------------------------------------|
@@ -118,14 +136,17 @@ else{
 
 let storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, "uploads")
+        cb(null, "uploads");
     },
     filename: (req, file, cb) => {
-        cb(null, file.fieldname + '-' + Date.now())
+        cb(null, file.fieldname + '-' + Date.now());
     }
 });
 
 let upload = multer({ storage: storage });
+
+//-----------------------------------------------------------------|
+////////////////////////////////////////////////////////////////////
 //=================================================================|
 //                     PASSPORT STRATEGY
 //-----------------------------------------------------------------|
@@ -150,10 +171,11 @@ const googleOAuth20Strategy = new GoogleStrategy({ // authenticate("google")
     callbackURL: "http://" + process.env.SR_HOST + ":" + process.env.PORT + "/auth/google/private",
     userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
   },
-  (accessToken, refreshToken, profile, cb) => {
+  (accessToken, refreshToken, profile, done) => {
     // console.log(profile); // create user profile id from this callback function from passport google OAuth 2.
     User.findOrCreate({ googleId: profile.id, displayName: profile.displayName}, (err, user) => {
-      return cb(err, user);
+      if (err) { return done(err); }
+      return done(err, user);
     });
   }
 )
@@ -168,31 +190,59 @@ const githubOAuth20Strategy = new GitHubStrategy({
   (accessToken, refreshToken, profile, done) => {
     // console.log(profile);
     User.findOrCreate({ githubId: profile.id, displayName: profile.displayName,  username:profile.username }, (err, user) => {
+      if (err) { return done(err); }
       return done(err, user);
     });
   }
 )
 
+// Using Passport Facebook Open Authentication
+//-----------------------------------------------------------------|
+const facebookOAuthStrategy =  new FacebookStrategy({
+    clientID: process.env.FACEBOOK_APP_ID,
+    clientSecret: process.env.FACEBOOK_APP_SECRET,
+    callbackURL: "http://" + process.env.SR_HOST + ":" + process.env.PORT + "/auth/facebook/private",
+  },
+  (accessToken, refreshToken, profile, done) => {
+    // console.log(profile);
+    // console.log(profile.id);
+    // console.log(profile.displayName);
+    User.findOrCreate({ facebookId: profile.id, displayName: profile.displayName,  username:profile.username }, (err, user) => {
+      if (err) { return done(err); }
+      done(null, user);
+    });
+  }
+)
+
+//-----------------------------------------------------------------|
+////////////////////////////////////////////////////////////////////
+//=================================================================|
+//                     PROXY SETTINGS
+//-----------------------------------------------------------------|
 // Set Google OAuth to use proxy agent HTTP_PROXY=http://<proxyUser>:<proxyPass>@<proxyURL>:<proxyPort>
 // Comment this out if no proxy needed.
 // reference: https://github.com/drudge/passport-facebook-token/issues/67
 // restart application server to apply proxy change
 //-----------------------------------------------------------------|
-// const proxyAgent = new HttpsProxyAgent(process.env.HTTP_PROXY);
-//
-// // Set proxy agent to OAuth Strategies
-// //-----------------------------------------------------------------|
-// googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
-// githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
+const proxyAgent = new HttpsProxyAgent(process.env.HTTP_PROXY);
+
+// Set proxy agent to OAuth Strategies
+//-----------------------------------------------------------------|
+googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
+githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
+facebookOAuthStrategy._oauth2.setAgent(proxyAgent);
 
 // Set Passport to use Strategies
 //-----------------------------------------------------------------|
 passport.use(googleOAuth20Strategy);
 passport.use(githubOAuth20Strategy);
+passport.use(facebookOAuthStrategy);
 
 // For proxy setting
+//-----------------------------------------------------------------|
+////////////////////////////////////////////////////////////////////
 //=================================================================|
-//                      DEMO PAGE RENDERER
+//                  DEMO PAGE RENDERER FUNCTIONS
 //-----------------------------------------------------------------|
 function renderSettingPage(req, res, renderMessage){
   if(mongoose.connection.readyState === 1){ // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
@@ -202,7 +252,6 @@ function renderSettingPage(req, res, renderMessage){
       }
       else{
         if(resultObject){
-            console.log(resultObject);
             let dropDownListName  = resultObject.displayName;
             let profession        = resultObject.profession;
             let memberName        = resultObject.memberName;
@@ -214,7 +263,6 @@ function renderSettingPage(req, res, renderMessage){
             let availability      = resultObject.availability;
             let bio               = resultObject.bio;
             let pay               = resultObject.pay;
-
 
             if(!dropDownListName){dropDownListName = resultObject.username; }
             if(!profession){ profession = ""; }
@@ -237,9 +285,14 @@ function renderSettingPage(req, res, renderMessage){
               // console.log(resultObject.googleId);
               loginWithOAuth = "Google";
             }
+            else if(resultObject.facebookId){
+              // console.log(resultObject.facebookId);
+              loginWithOAuth = "Facebook";
+            }
 
-            res.render("settings", {
-              userAlreadyExisted: "",
+            console.log(renderMessage);
+            res.status(200).render("settings", {
+              userAlreadyExisted: renderMessage,
               pageTitle: "Profile Settings",
               username: dropDownListName,
               authorized: req.isAuthenticated(),
@@ -260,7 +313,7 @@ function renderSettingPage(req, res, renderMessage){
     });
   }
   else{
-    res.redirect("/servererror");
+    res.status(500).redirect("/servererror");
   }
 }
 
@@ -293,9 +346,9 @@ function renderPrivatePage(req , res, renderMessage){ //renderMessage can be rea
 
               let dropDownListName = resultObject.displayName;
               if(!dropDownListName){dropDownListName = resultObject.username; }
-              res.render("private", {
+              res.status(200).render("private", {
                 imageErroMessage: renderMessage,
-                pageTitle: "Authenticated!",
+                pageTitle: dropDownListName,
                 username: dropDownListName,
                 authorized: req.isAuthenticated(),
                 userID: resultObject._id,
@@ -320,7 +373,7 @@ function renderPrivatePage(req , res, renderMessage){ //renderMessage can be rea
     }); //User
   }
   else{
-    res.redirect("/servererror");
+    res.status(500).redirect("/servererror");
   }
 }
 
@@ -334,20 +387,20 @@ function renderHomePage(req, res){
         if(resultObject){
           let dropDownListName = resultObject.displayName;
           if(!dropDownListName){dropDownListName = resultObject.username; }
-          res.render("home", {
+          res.status(200).render("home", {
             userAlreadyExisted: "",
             pageTitle: "Mo.Co.",
             username: dropDownListName,
             authorized: req.isAuthenticated()
-          });
+          });//render
         }
       }
-    });
+    });//User
   }
 }
 
 function renderAcitvePosting_sub(ejs, res, username, resultobjList, isAuth){
-  res.render(ejs, {
+  res.status(200).render(ejs, {
     pageTitle: "Posting",
     username: username,
     listofService: resultobjList,
@@ -368,6 +421,8 @@ function renderActivePostingPage(ejs, req, res, query){
           // make some interface to show provider details.
           //Call back hell reference: https://medium.com/codebuddies/getting-to-know-asynchronous-javascript-callbacks-promises-and-async-await-17e0673281ee
           Service.find(query,(err, resultObjectList) => {
+            console.log("at -:" + ejs + " return results -:");
+            console.log(resultObjectList);
             renderAcitvePosting_sub(ejs, res, dropDownListName, resultObjectList, req.isAuthenticated());
           }); //service
         }
@@ -382,7 +437,7 @@ function renderActivePostingPage(ejs, req, res, query){
 }
 
 function renderLoginPage(req, res, renderMessage){
-  res.render("login", {
+  res.status(200).render("login", {
     userAlreadyExisted: renderMessage,
     pageTitle: "Login Page",
     username: "",
@@ -391,7 +446,7 @@ function renderLoginPage(req, res, renderMessage){
 }
 
 function renderRegisterPage(req, res, renderMessage){
-  res.render("register", {
+  res.status(200).render("register", {
     userAlreadyExisted: renderMessage,
     pageTitle: "Registration",
     username: "",
@@ -399,17 +454,36 @@ function renderRegisterPage(req, res, renderMessage){
   });
 }
 
+function render404NotFoundPage(res, req, username){
+  res.status(404).render("notfound",{
+    pageTitle: "4o4 NoT FoUnD",
+    username: username,
+    authorized: req.isAuthenticated()
+  });
+}
 //=================================================================|
 //                      DEMO SITE POST ROUTE
 //-----------------------------------------------------------------|
-app.post("/myposts", (req, res) => {
+//-----------------------------------------------------------------|
+////////////////////////////////////////////////////////////////////
+//=================================================================|
+//                        USER SPECIFIC
+//-----------------------------------------------------------------|
+app.post("/private/serviceUnlisting", (req, res) => {
   //console.log(req.body.userID);
-  let query = { userID: req.body.userID };
-  renderActivePostingPage("myposts", req, res, query);
+  console.log(typeof(req.body.unlistServiceID));
+  let query = { _id: req.body.unlistServiceID };
+  Service.deleteOne( query , (err) => {
+    if(err){ console.log(err); }
+    else{
+
+      console.log("Post (" + req.body.unlistServiceID + ") deleted.");
+      res.status(200).redirect("/myposts");
+    }
+  }); //service
 });
 
 app.post("/private/servicePosting", (req, res) => {
-    console.log("Service posted -: " + req.body.userID);
     //console.log(req.body);
 
     User.findOne({ _id: req.body.userID }, (err, resultUserObject) => {
@@ -427,28 +501,31 @@ app.post("/private/servicePosting", (req, res) => {
 
             //console.log(resultImageObject);
             let newService = new Service({
+              img: postImage,
               serviceTitle:req.body.serviceTitle,
               serviceDetails:req.body.serviceDetails,
               createDate: Date.now(),
               userID: resultUserObject._id,
-              pay: resultUserObject.pay,
-              img: postImage
+              pay: resultUserObject.pay
             });//ImageModel
 
+            console.log(newService);
             Service.create(newService ,(err, item) => {
                 if (err) { console.log(err); }
                 else {
-                  //show something to user that the service is posted.
-                    res.redirect('/activeposting');
+                    //show something to user that the service is posted.
+                    console.log("Service posted -: " + req.body.userID);
+                    res.status(200).redirect('/myposts');
                 }
               });//Service
           }
-        });
+        }); //imageModel
       }
     });//User
 });
 
 app.post("/private/profileImageUpload", upload.single('image'), (req, res, next) => {
+  console.log("REMINDER: do somthing for image resizing...");
   const imagePath = path.join(__dirname + '/uploads/' + req.file.filename);
   var obj = {
       userID: req.body.userID,
@@ -459,22 +536,80 @@ app.post("/private/profileImageUpload", upload.single('image'), (req, res, next)
   }
   ImageModel.findOneAndUpdate({userID: req.body.userID}, obj, {upsert: true} ,(err, item) => {
       if (err) {
+
           console.log(err);
           fs.unlinkSync(imagePath);
-          res.redirect('/private');
+          res.status(200).redirect('/private');
       }
       else {
+
           console.log("image uploaded.");
-          Service.updateMany({ userID: req.body.userID }, obj, {upsert: true}, (err) => {
+          Service.updateMany({ userID: req.body.userID }, obj, {upsert: false}, (err) => {
             if(err){ console.log(err);}
             else{
               fs.unlinkSync(imagePath);
-              res.redirect('/private');
+              res.status(200).redirect('/private');
+              console.log("image at service posting updated.");
             }
-          });
+          }); //Service
       }
-    });
+    }); //ImageModel
 });
+
+app.post("/settings/account", (req, res)=>{
+  //console.log(req.body);
+  let query = { _id: req.session.passport.user};
+  let update = { $set: req.body };
+  let options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+  //console.log(req.body)
+  User.updateOne(query, update, options, (err) => {
+     if(err){ console.log(err);}
+     else{
+
+       Service.updateMany({ userID: req.session.passport.user }, update, options, (err) => {
+         if(err){ console.log(err);}
+         else{
+            res.status(200).redirect("/private");
+         }
+       }); //Service
+     }
+  }); //User
+});
+
+app.post("/settings-password", (req, res)=>{
+  const currentUser = req.session.passport.user;
+  console.log(req.session.passport);
+  const oldPassword = req.body.oldPassword;
+  const newPassword = req.body.newPassword;
+  const confirmPswd = req.body.confirmPswd;
+  if(newPassword === confirmPswd){
+    if(mongoose.connection.readyState === 1){
+      User.findOne({_id:currentUser}, (err, resultObject)=>{
+        if(err){
+          console.log(err);
+          renderSettingPage(req, res, "Somehting went wrong, please try again...");
+          }
+          if(resultObject){
+            resultObject.changePassword(oldPassword, newPassword, (err)=>{
+              if(err){
+                console.log(err);
+                renderSettingPage(req, res, "Password does not match our records, please try again...");
+              }
+              else{renderLoginPage(req, res, "Password updated, please login again."); }
+            });
+          } else{renderSettingPage(req, res, "User does not exist in our record, please signout and try again."); }
+      }); //User
+    }
+  }
+  else{ renderSettingPage(req, res, "Both columns of new password must be the same."); }
+});
+
+//-----------------------------------------------------------------|
+////////////////////////////////////////////////////////////////////
+//=================================================================|
+//                      SERVER AUTHENICATION
+//-----------------------------------------------------------------|
 //reference: http://www.passportjs.org/docs/authenticate/
 app.post("/login", (req, res, next) => {
   // Create user document for checking
@@ -499,7 +634,7 @@ app.post("/login", (req, res, next) => {
             if(req.body.remember){
               req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; } // Cookie expires after 30 days
             else { req.session.cookie.expires = false; } // Cookie expires at end of session
-            return res.redirect("/private");
+            return res.status(200).redirect("/private");
           }
         });
       }
@@ -515,65 +650,24 @@ app.post("/register", (req, res) => {
         renderRegisterPage(req, res, "Email already in use.");
       }
       else{
-        passport.authenticate("local")(req, res, () => { res.redirect("/private"); });
+        passport.authenticate("local")(req, res, () => { res.status(200).redirect("/private"); });
       }
     });
   }
   else{
-    res.redirect("/servererror");
+    res.status(500).redirect("/servererror");
   }
 });
-
-app.post("/settings/account", (req, res)=>{
-  //console.log(req.body);
-  let query = { _id: req.session.passport.user};
-  let update = { $set: req.body };
-  let options = { upsert: true, new: true, setDefaultsOnInsert: true };
-
-  //console.log(req.body)
-  User.updateOne(query, update, options, (err) => {
-     if(err){ console.log(err);}
-     else{
-       Service.updateMany({ userID: req.session.passport.user }, update, options, (err) => {
-         if(err){ console.log(err);}
-         else{
-            res.redirect("/");
-         }
-       });
-     }
-  });
-});
-
-app.post("/settings/password", (req, res)=>{
-  const currentUser = req.session.passport.user;
-  console.log(req.session.passport);
-  const oldPassword = req.body.oldPassword;
-  const newPassword = req.body.newPassword;
-  const confirmPswd = req.body.confirmPswd;
-  if(newPassword === confirmPswd){
-    if(mongoose.connection.readyState === 1){
-      User.findOne({_id:currentUser}, (err, resultObject)=>{
-        if(!err){
-          if(resultObject){
-            resultObject.changePassword(oldPassword, newPassword, (err)=>{
-              if(!err){renderLoginPage(req, res, "Password updated, please login again.")}
-              else{console.log(err); renderSettingPage(req, res, "Somehting went wrong, please try again...");}
-            });
-          }
-          else{renderSettingPage(req, res, "User does not exist in our record, please signout and try again.");}
-        }
-        else{ console.log(err); renderSettingPage(req, res, "Somehting went wrong, please try again...");}
-      });
-    }
-  }
-  else{renderSettingPage(req, res, "Both columns of new password must be the same.");}
-});
-
 //=================================================================|
 //                      DEMO SITE GET ROUTE
 //-----------------------------------------------------------------|
+//-----------------------------------------------------------------|
+////////////////////////////////////////////////////////////////////
+//=================================================================|
+//                      ENTERY POINT
+//-----------------------------------------------------------------|
 app.get("/", (req, res) => {
-  res.redirect("/home");
+  res.status(200).redirect("/home");
 });
 
 app.get("/home", (req, res) => {
@@ -581,50 +675,36 @@ app.get("/home", (req, res) => {
     renderHomePage(req, res);
   }
   else{
-    res.render("home", {
+    res.status(200).render("home", {
       pageTitle: "Mo.Co.",
       username: "",
       authorized: req.isAuthenticated()
     });
   }
 });
-//=================================================================|
-//                      PROTECTED CONTENT
 //-----------------------------------------------------------------|
-// "/private" route relies on passport to authenticate
-//-----------------------------------------------------------------|
-app.get("/private", (req, res) => {
-  if (req.isAuthenticated()) {
-    renderPrivatePage(req, res, "");
-  } else { res.redirect("/login"); }
-});
-
+////////////////////////////////////////////////////////////////////
 //=================================================================|
 //                      SERVER AUTHENICATION
 //-----------------------------------------------------------------|
 app.get("/register", (req, res) => {
-  if (req.isAuthenticated()) { res.redirect("/private"); }
-  else {
-    res.render("register", {
-      userAlreadyExisted: "",
-      pageTitle: "Registration",
-      username: "",
-      authorized: req.isAuthenticated()
-    });
-  }
+  if (req.isAuthenticated()) { res.status(200).redirect("/private"); }
+  else {renderRegisterPage(req, res, ""); }
 });
 
 app.get("/login", (req, res) => {
-  if (req.isAuthenticated()) { res.redirect("/private"); }
-  else {
-    res.render("login", {
-      userAlreadyExisted: "",
-      pageTitle: "Login Page",
-      authorized: req.isAuthenticated()
-    });
-  }
+  if (req.isAuthenticated()) { res.status(200).redirect("/private"); }
+  else {renderLoginPage(req, res, ""); }
 });
 
+app.get("/logout", (req, res) => {
+  //This came from passport
+  if(req.session){
+    req.logout();
+    req.session.destroy();
+    res.redirect("/login");
+  }
+});
 //-----------------------------------------------------------------|
 //                        GOOGLE OAUTH2.0
 //-----------------------------------------------------------------|
@@ -637,12 +717,11 @@ app.get("/auth/google",
 // Google OAuth callback
 app.get("/auth/google/private",
   passport.authenticate('google', { failureRedirect: "/login"}),
-    (req, res) => { res.redirect('/private'); });
+    (req, res) => { res.status(200).redirect('/private'); });
     //If OAuth success, bring them to private page.
+
 //-----------------------------------------------------------------|
-//||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-//-----------------------------------------------------------------|
-//                        GITHUT AUTH
+//                        GITHUT OAUTH
 //-----------------------------------------------------------------|
 // Sign in with GitHub button take users here
 //-----------------------------------------------------------------|
@@ -653,28 +732,41 @@ app.get("/auth/github",
 // Github OAuth callback
 app.get("/auth/github/private",
   passport.authenticate('github', { failureRedirect: "/login"}),
-    (req, res) => { res.redirect('/private'); });
+    (req, res) => { res.status(200).redirect('/private'); });
     //If OAuth success, bring them to private page.
-//-----------------------------------------------------------------|
-//||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
-app.get("/logout", (req, res) => {
-  //This came from passport
-  if(req.session){
-    req.logout();
-    req.session.destroy();
-    res.redirect("/login");
-  }
+//-----------------------------------------------------------------|
+//                      FACEBOOK OAUTH
+//-----------------------------------------------------------------|
+// Sign in with GitHub button take users here
+//-----------------------------------------------------------------|
+app.get("/auth/facebook",
+  passport.authenticate("facebook")
+);
+
+// Github OAuth callback
+app.get("/auth/facebook/private",
+  passport.authenticate("facebook", { failureRedirect: "/login"}),
+    (req, res) => { res.status(200).redirect('/private'); });
+    //If OAuth success, bring them to private page.
+
+//-----------------------------------------------------------------|
+////////////////////////////////////////////////////////////////////
+//=================================================================|
+//                        USER SPECIFIC
+//-----------------------------------------------------------------|
+// "/private" route relies on passport to authenticate
+//-----------------------------------------------------------------|
+app.get("/private", (req, res) => {
+  if (req.isAuthenticated()) {
+    renderPrivatePage(req, res, "");
+  } else { res.status(200).redirect("/login"); }
 });
 
-//=================================================================|
-//                        USER SETTINGS
-//-----------------------------------------------------------------|
 app.get("/settings", (req, res) => {
-  if (req.isAuthenticated()) {
-    renderSettingPage(req, res, "");
-  }
-  else { res.redirect("/login"); }
+  if (!req.isAuthenticated()) { res.status(200).redirect("/login"); }
+  renderSettingPage(req, res, "");
+
 });
 
 app.get("/activeposting", (req, res) => {
@@ -682,10 +774,19 @@ app.get("/activeposting", (req, res) => {
   renderActivePostingPage("activeposting", req, res, query);
 });
 
+app.get("/myposts", (req, res) => {
+  if (!req.isAuthenticated()) { res.status(200).redirect("/login"); }
+
+  const currentUser = req.session.passport.user;
+  let query = { userID: currentUser };
+  renderActivePostingPage("myposts", req, res, query);
+
+});
+//-----------------------------------------------------------------|
+////////////////////////////////////////////////////////////////////
 //=================================================================|
 //                    OTHER SERVER RESPONSE
 //-----------------------------------------------------------------|
-
 app.get("/servererror", (req, res) => {
   res.status(500).render("servererror",{
     pageTitle: "5o0 Server Error",
@@ -694,12 +795,25 @@ app.get("/servererror", (req, res) => {
 });
 
 app.get("*", (req, res) => {
-  res.status(404).render("notfound",{
-    pageTitle: "4o4 NoT FoUnD",
-    authorized: req.isAuthenticated()
-  });
+  if (!req.isAuthenticated()) {
+    render404NotFoundPage(res, req, "");
+  }
+  else{
+    if(mongoose.connection.readyState === 1){
+      const currentUser = req.session.passport.user;
+      User.findOne({ _id: currentUser}, (err, resultObject) => {
+        if(err){ console.log(err); }
+        else{
+          let dropDownListName = resultObject.displayName;
+          if(!dropDownListName){dropDownListName = resultObject.username; }
+            render404NotFoundPage(res, req, dropDownListName)
+          }
+        });
+      }
+    }
 });
-
+//-----------------------------------------------------------------|
+////////////////////////////////////////////////////////////////////
 //=================================================================|
 //                    SERVER LISTENING PORT
 //-----------------------------------------------------------------|

@@ -5,6 +5,9 @@
 
 <body class="text-center">
   <h1 class="h3 mb-3 fw-normal">Account Profile Settings</h1>
+  <% if(userAlreadyExisted != "") { %>
+  <p class="warn-text" autofocus><%= userAlreadyExisted %></p>
+  <% } %>
   <div class="form-setting">
     <form class="" action="/settings/account" method="post">
       <div class="form-group">
@@ -66,14 +69,13 @@
   <% } %>
   <h1 class="h3 mb-3 fw-normal">Change your password</h1>
   <div class="form-setting">
-    <form class="" action="/settings/password" method="post">
+    <form class="" action="/settings-password" method="post">
       <label for="inputPassword" class="visually-hidden">oldPassword</label>
       <input type="password" id="inputPassword" name="oldPassword" class="form-control update-pwd-top" placeholder="Current password" required <%= injectClass %>>
       <label for="inputPassword" class="visually-hidden">newPassword</label>
       <input type="password" id="inputPassword" name="newPassword" class="form-control update-pwd-mid" placeholder="New password" required <%= injectClass %>>
       <label for="inputPassword" class="visually-hidden">confrimPassword</label>
       <input type="password" id="inputPassword" name="confirmPswd" class="form-control update-pwd-bot" placeholder="Confirm password" required <%= injectClass %>>
-      <p class="warn-text"><%= userAlreadyExisted %></p>
       <button class="w-100 btn btn-lg btn-outline-primary" type="submit" <%= injectClass %>>Update</button>
     </form>
   </div>

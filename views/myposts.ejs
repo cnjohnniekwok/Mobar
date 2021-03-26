@@ -1,50 +1,58 @@
 <%- include("header"); -%>
-<main class="container">
+<div class="container">
 
   <% if(listofService.length === 0){ %>
     <div class="starter-template text-center py-5 px-3">
-      <h1>There are no service provider yet ...</h1>
-      <p class="lead">Be the first one to provide! Start Now, and sign up!</p>
+      <h1>Appears you do not have any service listing...</h1>
+      <p class="lead">Start Now! and list a service!</p>
     </div>
     <div class="form-setting">
-      <form class="" action="/register" method="Get">
-        <button class="w-100 btn btn-lg btn-outline-primary" type="Submit">Register NOW</button>
+      <form class="" action="/private" method="Get">
+        <button class="w-100 btn btn-lg btn-outline-primary" type="Submit">List a service NOW</button>
       </form>
     </div>
     <% } else{ %>
-    <div class="row row-cols-1 row-cols-md-4 mb-4 text-center">
+    <div class="row">
         <% listofService.forEach((eachService) => { %>
-
-          <div class="card-deck">
-            <div class="card mb-4 rounded-3 shadow-sm">
-              <div class="card-header py-3">
-                <h4 class="my-0 fw-normal"><%=eachService.serviceTitle%></h4>
-              </div>
+          <div class="col-lg-3 mb-3">
+            <div class="card service-card">
               <% if(!eachService.img.contentType) { %>
               <img
+                class="service-image card-img-top img-thumbnail"
                 src="icons/profileDefault.png"
                 alt="">
               <% } else {%>
-              <img class="card-img-top img-thumbnail" src="data:image/<%=eachService.img.contentType%>;base64,<%=eachService.img.data.toString('base64')%>" alt="serivce image cap">
+              <img class="service-image card-img-top img-thumbnail" src="data:image/<%=eachService.img.contentType%>;base64,<%=eachService.img.data.toString('base64')%>" alt="serivce image cap">
               <% } %>
               <div class="card-body">
+                <h5 class="card-title"><%=eachService.serviceTitle%></h5>
+                <% if(!eachService.pay){ %>
+                  <h1 class="small">Free<small class="text-muted fw-light">/hr</small></h1>
+                <% } else {%>
+                  <h1 class="small"><%=eachService.pay%><small class="text-muted fw-light">/hr</small></h1>
+                <% } %>
+                <hr class="mb-4">
                 <% if(eachService.serviceDetails.length > 100) {%>
                 <p class="card-text"><%=(eachService.serviceDetails).substring(0,100) + " ..."%></p>
                 <% } else { %>
                 <p class="card-text"><%= eachService.serviceDetails %></p>
                 <% } %>
+                <div>
+                  <a href="" class="btn btn-outline-success btn-sm">Read More</a>
+                  <a href="" class="btn btn-outline-danger btn-sm"><i class="far fa-heart"></i></a>
+                </div>
+                <small class="mt-1 text-muted">Posted on: <%=eachService.createDate.getDate()%>-<%=eachService.createDate.getMonth()%>-<%=eachService.createDate.getFullYear()%></small>
               </div>
               <div class="card-footer">
-                <h1 class="small"><%=eachService.pay%><small class="text-muted fw-light">/hr</small></h1>
-                <small class="text-muted"><%=eachService.createDate%></small>
+                <form class="" action="/private/serviceUnlisting" method="POST">
+                  <input type="hidden" name="unlistServiceID" value="<%=eachService._id%>">
+                  <button class="w-100 btn btn-lg btn-outline-danger" type="Submit">Unlist service</button>
+                </form>
               </div>
-              <button class="w-100 btn btn-lg btn-outline-danger" type="button">Unlist service</button>
             </div>
           </div>
         <% }); %>
     </div>
   <% } %>
-
-
-</main>
+ </div>
 <%- include("footer"); -%>
