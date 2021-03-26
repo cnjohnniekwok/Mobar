@@ -38,15 +38,19 @@
                 <p class="card-text"><%= eachService.serviceDetails %></p>
                 <% } %>
                 <div>
-                  <a href="" class="btn btn-outline-success btn-sm">Read More</a>
+                  <a href="/" class="btn btn-outline-success btn-sm">Read More</a>
                   <a href="" class="btn btn-outline-danger btn-sm"><i class="far fa-heart"></i></a>
                 </div>
                 <small class="mt-1 text-muted">Posted on: <%=eachService.createDate.getDate()%>-<%=eachService.createDate.getMonth()%>-<%=eachService.createDate.getFullYear()%></small>
               </div>
               <div class="card-footer">
+                <form class="" action="/" method="GET">
+                  <input type="hidden" name="unlistServiceID" value="<%=eachService._id%>">
+                  <button class="w-100 btn btn-sm btn-outline-secondary" type="Submit" disabled>Edit service</button>
+                </form>
                 <form class="" action="/private/serviceUnlisting" method="POST">
                   <input type="hidden" name="unlistServiceID" value="<%=eachService._id%>">
-                  <button class="w-100 btn btn-lg btn-outline-danger" type="Submit">Unlist service</button>
+                  <button class="mt-1 w-100 btn btn-sm btn-outline-danger" type="Submit">Unlist service</button>
                 </form>
               </div>
             </div>

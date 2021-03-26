@@ -90,11 +90,12 @@ body {
 }
 
 /*mypost and active service posting*/
-.service-image {
+img.service-image {
   background-color:#ffff;
-  opacity:0.75;
+  opacity:0.9;
   border-radius:30px;
-  object-fit: scale-down;
+  height: 150px;
+  object-fit: cover;
 }
 
 .service-card {
