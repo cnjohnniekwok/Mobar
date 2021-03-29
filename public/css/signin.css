@@ -1,7 +1,18 @@
-body {
-  padding-top: 50px;
+Html,body {
+  height:100%;
   background-color: #FAF3E0;
   font-family: 'Montserrat Alternates', sans-serif;
+}
+
+.mainBody {
+  min-height: 100%;
+  padding-top: 100px;
+  margin-bottom: -200px;
+  padding-bottom: 200px;
+}
+
+.footer {
+  margin-bottom: 0px;
 }
 
 .private_page{
@@ -78,11 +89,6 @@ body {
   padding: 20px 0;
 }
 
-.mainBody {
-  margin-top: 5%;
-  margin-bottom: 5%;
-}
-
 /*Home Page*/
 .title-image {
   width: 70%;
@@ -152,13 +158,6 @@ img.service-image {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     }
-}
-
-@media only screen and (max-width: 375px) {
-}
-
-@media only screen and (max-width: 320px) {
-
 }
 
 

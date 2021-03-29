@@ -51,11 +51,13 @@ let devMongoDBURI="mongodb://" + process.env.DB_HOST + ":" + process.env.DB_PORT
 let prdMongoDBURI="mongodb+srv://" + process.env.DB_USER + ":" + process.env.DB_PSWD + "@cluster0.gugxn.mongodb.net/" + process.env.DB_NAME;
 
 if(process.env.SERVER_URI != "http://localhost:3000"){
+  console.log("Starting up with PRD mongoDB connection.");
   mongoose.connect(prdMongoDBURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
   });
 } else {
+  console.log("Starting up with DEV mongoDB connection.");
   mongoose.connect(devMongoDBURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
