@@ -49,10 +49,19 @@ app.use(passport.session());
 //reference: https://devcenter.heroku.com/articles/config-vars
 let devMongoDBURI="mongodb://" + process.env.DB_HOST + ":" + process.env.DB_PORT + "/" + process.env.DB_NAME;
 let prdMongoDBURI="mongodb+srv://" + process.env.DB_USER + ":" + process.env.DB_PSWD + "@cluster0.gugxn.mongodb.net/" + process.env.DB_NAME;
-mongoose.connect(devMongoDBURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+
+if(process.env.SERVER_URI != "http://localhost:3000"){
+  mongoose.connect(prdMongoDBURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  });
+} else {
+  mongoose.connect(devMongoDBURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  });
+}
+
 // need to use createIndex and useFindAndModify otherwise its depreated
 //-----------------------------------------------------------------|
 mongoose.set('useCreateIndex', true);
@@ -230,9 +239,9 @@ const proxyAgent = new HttpsProxyAgent(process.env.HTTP_PROXY);
 
 // Set proxy agent to OAuth Strategies
 //-----------------------------------------------------------------|
-googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
-githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
-facebookOAuthStrategy._oauth2.setAgent(proxyAgent);
+// googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
+// githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
+// facebookOAuthStrategy._oauth2.setAgent(proxyAgent);
 
 // Set Passport to use Strategies
 //-----------------------------------------------------------------|
