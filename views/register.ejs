@@ -1,37 +1,37 @@
 <%- include("header"); -%>
-  <main class="form-signin text-center">
-    <form class="" action="/register" method="post">
-      <!-- <img class="mb-4" src="/docs/5.0/assets/brand/bootstrap-logo.svg" alt="" width="72" height="57"> -->
-      <h1 class="h3 mb-3 fw-normal">Register with email</h1>
-      <label for="inputEmail" class="visually-hidden">Email address</label>
-      <input type="email" id="inputEmail" name="username" class="form-control" placeholder="Email address" required autofocus>
-      <label for="inputPassword" class="visually-hidden">Password</label>
-      <input type="password" id="inputPassword" name="password" class="form-control" placeholder="Password" required>
-      <p class="warn-text"><%= userAlreadyExisted %></p>
+<main class="form-signin text-center">
+  <form class="" action="/register" method="post">
+    <!-- <img class="mb-4" src="/docs/5.0/assets/brand/bootstrap-logo.svg" alt="" width="72" height="57"> -->
+    <h1 class="h3 mb-3 fw-normal">Register with email</h1>
+    <label for="inputEmail" class="visually-hidden">Email address</label>
+    <input type="email" id="inputEmail" name="username" class="form-control" placeholder="Email address" required autofocus>
+    <label for="inputPassword" class="visually-hidden">Password</label>
+    <input type="password" id="inputPassword" name="password" class="form-control" placeholder="Password" required>
+    <p class="warn-text"><%= userAlreadyExisted %></p>
 
-      <div class="col-sm">
-        <div class="card">
-          <div class="card-body">
-            <button class="w-100 btn btn-lg btn-outline-primary" type="submit">Register</button>
-            <hr>
-            <!-- Google Sign in -->
-            <a class="w-100 btn btn-lg btn-social btn-google" href="/auth/google" role="button">
-              <i class="fab fa-google"></i>
-              Sign In with Google
-            </a>
-            <!-- GitHub Sign in -->
-            <a class="mt-2 w-100 btn btn-lg btn-social btn-github" href="/auth/github" role="button">
-              <i class="fab fa-github"></i>
-              Sign In with GitHub
-            </a>
-            <!-- Facebook Sign in -->
-            <a class="mt-2 w-100 btn btn-lg btn-social btn-facebook" href="/auth/facebook" role="button">
-              <i class="fab fa-facebook"></i>
-              Sign In with Facebook
-            </a>
-          </div>
+    <div class="col-sm">
+      <div class="card">
+        <div class="card-body">
+          <button class="w-100 btn btn-lg btn-outline-primary" type="submit">Register</button>
+          <hr>
+          <!-- Google Sign in -->
+          <a class="w-100 btn btn-lg btn-social btn-google" href="/auth/google" role="button">
+            <i class="fab fa-google"></i>
+            Sign In with Google
+          </a>
+          <!-- GitHub Sign in -->
+          <a class="mt-2 w-100 btn btn-lg btn-social btn-github" href="/auth/github" role="button">
+            <i class="fab fa-github"></i>
+            Sign In with GitHub
+          </a>
+          <!-- Facebook Sign in -->
+          <a class="mt-2 w-100 btn btn-lg btn-social btn-facebook" href="/auth/facebook" role="button">
+            <i class="fab fa-facebook"></i>
+            Sign In with Facebook
+          </a>
         </div>
       </div>
-    </form>
-  </main>
+    </div>
+  </form>
+</main>
 <%- include("footer"); -%>

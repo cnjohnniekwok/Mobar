@@ -2,65 +2,63 @@
 <main class="container">
 
   <% if(listofService.length === 0){ %>
-    <div class="starter-template text-center py-5 px-3">
-      <h1>Appears you do not have any service listing...</h1>
-      <p class="lead">Start Now! and list a service!</p>
-    </div>
-    <div class="form-setting">
-      <form class="" action="/private" method="Get">
-        <button class="w-100 btn btn-lg btn-outline-primary" type="Submit">List a service NOW</button>
-      </form>
-    </div>
-    <% } else{ %>
-    <div class="row">
-        <% for (let i = listofService.length - 1; i >= 0; i--){%>
-          <div class="col-lg-3 mb-3">
-            <div class="card service-card">
-              <% if(!listofService[i].img.contentType) { %>
-              <img
-                class="service-image card-img-top img-thumbnail"
-                src="/icons/profileDefault.png"
-                alt="">
-              <% } else {%>
-              <img class="service-image card-img-top img-thumbnail" src="data:image/<%=listofService[i].img.contentType%>;base64,<%=listofService[i].img.data.toString('base64')%>" alt="serivce image cap">
-              <% } %>
-              <div class="card-body">
-                <% if(listofService[i].serviceTitle.length > 25) {%>
-                <h6 class="card-title"><%=listofService[i].serviceTitle.substring(0,25)+ " ..."%> %></h6>
-                <% } else { %>
-                <h6 class="card-title"><%=listofService[i].serviceTitle%></h6>
-                <% } %>
-                <% if(!listofService[i].pay){ %>
-                  <h1 class="small">Free<small class="text-muted fw-light">/hr</small></h1>
-                <% } else {%>
-                  <h1 class="small"><%=listofService[i].pay%><small class="text-muted fw-light">/hr</small></h1>
-                <% } %>
-                <hr class="mb-4">
-                <% if(listofService[i].serviceDetails.length > 100) {%>
-                <p class="card-text"><%=(listofService[i].serviceDetails).substring(0,100) + " ..."%></p>
-                <% } else { %>
-                <p class="card-text"><%= listofService[i].serviceDetails %></p>
-                <% } %>
-                <div>
-                  <a href="/activeposting/<%=listofService[i]._id %>" class="btn btn-outline-success btn-sm">Read More</a>
-                  <a href="" class="btn btn-outline-danger btn-sm"><i class="far fa-heart"></i></a>
-                </div>
-                <small class="mt-1 text-muted">Posted on: <%=listofService[i].createDate.getDate()%>-<%=listofService[i].createDate.getMonth()+1%>-<%=listofService[i].createDate.getFullYear()%></small>
-              </div>
-              <div class="card-footer">
-                <form class="" action="/" method="GET">
-                  <input type="hidden" name="unlistServiceID" value="<%=listofService[i]._id%>">
-                  <button class="w-100 btn btn-sm btn-outline-secondary" type="Submit" disabled>Edit service</button>
-                </form>
-                <form class="" action="/private/serviceUnlisting" method="POST">
-                  <input type="hidden" name="unlistServiceID" value="<%=listofService[i]._id%>">
-                  <button class="mt-1 w-100 btn btn-sm btn-outline-danger" type="Submit">Unlist service</button>
-                </form>
-              </div>
-            </div>
-          </div>
+  <div class="starter-template text-center py-5 px-3">
+    <h1>Appears you do not have any service listing...</h1>
+    <p class="lead">Start Now! and list a service!</p>
+  </div>
+  <div class="form-setting">
+    <form class="" action="/private" method="Get">
+      <button class="w-100 btn btn-lg btn-outline-primary" type="Submit">List a service NOW</button>
+    </form>
+  </div>
+  <% } else{ %>
+  <div class="row">
+    <% for (let i = listofService.length - 1; i >= 0; i--){%>
+    <div class="col-lg-3 mb-3">
+      <div class="card service-card">
+        <% if(!listofService[i].img.contentType) { %>
+        <img class="service-image card-img-top img-thumbnail" src="/icons/profileDefault.png" alt="">
+        <% } else {%>
+        <img class="service-image card-img-top img-thumbnail" src="data:image/<%=listofService[i].img.contentType%>;base64,<%=listofService[i].img.data.toString('base64')%>" alt="serivce image cap">
         <% } %>
+        <div class="card-body">
+          <% if(listofService[i].serviceTitle.length > 25) {%>
+          <h6 class="card-title"><%=listofService[i].serviceTitle.substring(0,25)+ " ..."%> %></h6>
+          <% } else { %>
+          <h6 class="card-title"><%=listofService[i].serviceTitle%></h6>
+          <% } %>
+          <% if(!listofService[i].pay){ %>
+          <h1 class="small">Free<small class="text-muted fw-light">/hr</small></h1>
+          <% } else {%>
+          <h1 class="small"><%=listofService[i].pay%><small class="text-muted fw-light">/hr</small></h1>
+          <% } %>
+          <hr class="mb-4">
+          <% if(listofService[i].serviceDetails.length > 100) {%>
+          <p class="card-text"><%=(listofService[i].serviceDetails).substring(0,100) + " ..."%></p>
+          <% } else { %>
+          <p class="card-text"><%= listofService[i].serviceDetails %></p>
+          <% } %>
+          <div>
+            <a href="/activeposting/<%=listofService[i]._id %>" class="btn btn-outline-success btn-sm">Read More</a>
+            <a href="" class="btn btn-outline-danger btn-sm"><i class="far fa-heart"></i></a>
+          </div>
+          <small class="mt-1 text-muted">Posted on: <%=listofService[i].createDate.getDate()%>-<%=listofService[i].createDate.getMonth()+1%>-<%=listofService[i].createDate.getFullYear()%></small>
+        </div>
+        <div class="card-footer">
+          <form class="" action="/" method="GET">
+            <input type="hidden" name="unlistServiceID" value="<%=listofService[i]._id%>">
+            <button class="w-100 btn btn-sm btn-outline-secondary" type="Submit" disabled>Edit service</button>
+          </form>
+          <form class="" action="/private/serviceUnlisting" method="POST">
+            <input type="hidden" name="unlistServiceID" value="<%=listofService[i]._id%>">
+            <button class="mt-1 w-100 btn btn-sm btn-outline-danger" type="Submit">Unlist service</button>
+          </form>
+        </div>
+      </div>
     </div>
+    <% } %>
+  </div>
+  <div class="space-holder"> </div>
   <% } %>
 </main>
 <%- include("footer"); -%>

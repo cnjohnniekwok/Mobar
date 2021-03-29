@@ -1,44 +1,42 @@
 <%- include("header"); -%>
 <main class="container">
-      <div class="row">
-            <div class="col-lg-4">
-              <div class="card service-card-img-top">
-                <% if(!listofService[0].img.contentType) { %>
-                <img
-                  class="service-image card-img-top img-thumbnail"
-                  src="/icons/profileDefault.png"
-                  alt="">
-                <% } else {%>
-                <img class="service-image card-img-to img-thumbnail" src="data:image/<%=listofService[0].img.contentType%>;base64,<%=listofService[0].img.data.toString('base64')%>" alt="serivce image cap">
-                <% } %>
-              </div>
-            </div>
-            <div class="col-lg-8">
-              <div class="card service-card-img-bottom">
-                <div class="card-body">
-                  <h4 class="card-title"><%=listofService[0].serviceTitle%></h4>
-                  <% if(!listofService[0].pay){ %>
-                    <h1 class="small">Free<small class="text-muted fw-light">/hr</small></h1>
-                  <% } else {%>
-                    <h1 class="small"><%=listofService[0].pay%><small class="text-muted fw-light">/hr</small></h1>
-                  <% } %>
-                  <a href="/profile/<%=listofService[0].userID%>"  class="mt-2 btn btn-outline-secondary btn-sm" role="button">View Provider's Profile</a>
-                  <a href="" class="mt-2 btn btn-outline-danger btn-sm"><i class="far fa-heart" role="button"></i></a>
-                  <hr class="mb-4">
-                  <p class="card-text"><%= listofService[0].serviceDetails %></p>
-                  <small class="mt-1 text-muted">Posted on: <%=listofService[0].createDate.getDate()%>-<%=listofService[0].createDate.getMonth()+1%>-<%=listofService[0].createDate.getFullYear()%></small>
-                </div>
-                <div class="card-footer">
-                  <div>
-                    <form class="" action="/" method="GET">
-                      <input type="hidden" name="pickThisService" value="<%=listofService[0]._id%>">
-                      <a href="/activeposting"  class="mb-1 btn btn-outline-secondary btn-sm" role="button">Active Posting</a>
-                      <a href="/" class="mb-1 btn btn-outline-primary btn-sm" role="button" disabled>Pick this service</a>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </div>
+  <div class="row">
+    <div class="col-lg-4">
+      <div class="card service-card-img-top">
+        <% if(!listofService[0].img.contentType) { %>
+        <img class="service-image card-img-top img-thumbnail" src="/icons/profileDefault.png" alt="">
+        <% } else {%>
+        <img class="service-image card-img-to img-thumbnail" src="data:image/<%=listofService[0].img.contentType%>;base64,<%=listofService[0].img.data.toString('base64')%>" alt="serivce image cap">
+        <% } %>
       </div>
-  </main>
+    </div>
+    <div class="col-lg-8">
+      <div class="card service-card-img-bottom">
+        <div class="card-body">
+          <h4 class="card-title"><%=listofService[0].serviceTitle%></h4>
+          <% if(!listofService[0].pay){ %>
+          <h1 class="small">Free<small class="text-muted fw-light">/hr</small></h1>
+          <% } else {%>
+          <h1 class="small"><%=listofService[0].pay%><small class="text-muted fw-light">/hr</small></h1>
+          <% } %>
+          <a href="/profile/<%=listofService[0].userID%>" class="mt-2 btn btn-outline-secondary btn-sm" role="button">View Provider's Profile</a>
+          <a href="" class="mt-2 btn btn-outline-danger btn-sm"><i class="far fa-heart" role="button"></i></a>
+          <hr class="mb-4">
+          <p class="card-text"><%= listofService[0].serviceDetails %></p>
+          <small class="mt-1 text-muted">Posted on: <%=listofService[0].createDate.getDate()%>-<%=listofService[0].createDate.getMonth()+1%>-<%=listofService[0].createDate.getFullYear()%></small>
+        </div>
+        <div class="card-footer">
+          <div>
+            <form class="" action="/" method="GET">
+              <input type="hidden" name="pickThisService" value="<%=listofService[0]._id%>">
+              <a href="/activeposting" class="mb-1 btn btn-outline-secondary btn-sm" role="button">Active Posting</a>
+              <a href="/" class="mb-1 btn btn-outline-primary btn-sm" role="button" disabled>Pick this service</a>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="space-holder"> </div>
+  </div>
+</main>
 <%- include("footer"); -%>

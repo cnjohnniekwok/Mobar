@@ -1,21 +1,25 @@
-Html,body {
-  height:100%;
+Html, body {
+  height: 100%;
   background-color: #FAF3E0;
   font-family: 'Montserrat Alternates', sans-serif;
+}
+
+.space-holder{
+  height: 50%;
 }
 
 .mainBody {
   min-height: 100%;
   padding-top: 100px;
   margin-bottom: -200px;
-  padding-bottom: 250px;
+  padding-bottom: 200px;
 }
 
 .footer {
   margin-bottom: 0px;
 }
 
-.private_page{
+.private_page {
   color: blue;
 }
 
@@ -40,6 +44,7 @@ Html,body {
 .form-signin .checkbox {
   font-weight: 400;
 }
+
 .form-signin .form-control {
   position: relative;
   box-sizing: border-box;
@@ -47,6 +52,7 @@ Html,body {
   padding: 10px;
   font-size: 16px;
 }
+
 .form-signin .form-control:focus {
   z-index: 2;
 }
@@ -94,17 +100,17 @@ Html,body {
   width: 70%;
 }
 
-.feature-box{
+.feature-box {
   text-align: center;
   padding: 4.5;
 }
 
-.white-section{
+.white-section {
   background-color: rgba(255, 255, 255, 0.5);
   padding: 100px;
 }
 
-.welcome-text{
+.welcome-text {
   padding-top: 15%;
   padding-left: 15%;
   margin-bottom: 15%;
@@ -112,27 +118,26 @@ Html,body {
 
 /*mypost and active service posting*/
 img.service-image {
-  background-color:#ffff;
-  opacity:0.9;
-  border-radius:20px;
+  background-color: #ffff;
+  opacity: 0.9;
+  border-radius: 20px;
   height: 150px;
   object-fit: cover;
 }
 
 .service-card, .service-card-img-top, .service-card-img-bottom {
-  border-radius:20px;
+  border-radius: 20px;
   margin-bottom: 5px;
 }
 
-
 .navbar, .service-card, .service-card-img-top, .service-card-img-bottom {
-    box-shadow: 0 4px 18px 0 rgba(0,0,0,.12), 0 7px 10px -5px rgba(0,0,0,.15) !important;
+  box-shadow: 0 4px 18px 0 rgba(0, 0, 0, .12), 0 7px 10px -5px rgba(0, 0, 0, .15) !important;
 }
 
 .dropdown-menu .dropdown-item:focus, .dropdown-menu .dropdown-item:hover, .dropdown-menu a:active, .dropdown-menu a:focus, .dropdown-menu a:hover {
-    box-shadow: 0 4px 20px 0 rgba(0,0,0,.14), 0 7px 10px -5px rgba(0,0,0,.15);
-    background-color: #212529;
-    color: #FFF;
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, .14), 0 7px 10px -5px rgba(0, 0, 0, .15);
+  background-color: #212529;
+  color: #FFF;
 }
 
 /*ove links underline*/
@@ -141,7 +146,7 @@ img.service-image {
 }
 
 @media only screen and (max-width: 765px) {
-  .welcome-text{
+  .welcome-text {
     text-align: center;
     padding-top: 10%;
     padding-left: 0;
@@ -151,118 +156,132 @@ img.service-image {
   .service-card-img-top {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
-    }
+  }
 
   .service-card-img-bottom {
     margin-top: -2px;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
-    }
+  }
 }
 
-
 /*Responsive button for smaller screen*/
-@include media-breakpoint-between(xs,sm){
+@include media-breakpoint-between(xs, sm) {
   .btn {
-      @include button-size($input-btn-padding-y-sm, $input-btn-padding-x-sm, $font-size-sm, $line-height-sm, $btn-border-radius-sm);
+    @include button-size($input-btn-padding-y-sm, $input-btn-padding-x-sm, $font-size-sm, $line-height-sm, $btn-border-radius-sm);
   }
 }
 
 /*Profile page*/
-.emp-profile{
-    padding: 3%;
-    margin-top: 3%;
-    margin-bottom: 3%;
-    border-radius: 0.5rem;
+.emp-profile {
+  padding: 3%;
+  margin-top: 3%;
+  margin-bottom: 3%;
+  border-radius: 0.5rem;
 }
 
 .profile-img {
-    text-align: center;
+  text-align: center;
 }
 
-.profile-img img{
-    width: 70%;
-    height: 100%;
-    border-radius: 0px;
+.profile-img img {
+  width: 70%;
+  height: 100%;
+  border-radius: 0px;
 }
 
 .profile-img .file {
-    position: relative;
-    overflow: hidden;
-    margin-top: -20%;
-    width: 70%;
-    border: none;
-    border-radius: 0;
-    font-size: 15px;
-    background: #212529b8;
+  position: relative;
+  overflow: hidden;
+  margin-top: -20%;
+  width: 70%;
+  border: none;
+  border-radius: 0;
+  font-size: 15px;
+  background: #212529b8;
 }
+
 .profile-img .file input {
-    position: absolute;
-    opacity: 0;
-    right: 0;
-    top: 0;
+  position: absolute;
+  opacity: 0;
+  right: 0;
+  top: 0;
 }
-.profile-head h5{
-    color: #333;
+
+.profile-head h5 {
+  color: #333;
 }
-.profile-head h6{
-    color: #0062cc;
+
+.profile-head h6 {
+  color: #0062cc;
 }
-.profile-edit-btn{
-    border: none;
-    border-radius: 1.5rem;
-    width: 70%;
-    padding: 2%;
-    font-weight: 600;
-    color: #6c757d;
-    cursor: pointer;
+
+.profile-edit-btn {
+  border: none;
+  border-radius: 1.5rem;
+  width: 70%;
+  padding: 2%;
+  font-weight: 600;
+  color: #6c757d;
+  cursor: pointer;
 }
-.proile-rating{
-    font-size: 12px;
-    color: #818182;
-    margin-top: 5%;
+
+.proile-rating {
+  font-size: 12px;
+  color: #818182;
+  margin-top: 5%;
 }
-.proile-rating span{
-    color: #495057;
-    font-size: 15px;
-    font-weight: 600;
+
+.proile-rating span {
+  color: #495057;
+  font-size: 15px;
+  font-weight: 600;
 }
-.profile-head .nav-tabs{
-    margin-bottom:5%;
+
+.profile-head .nav-tabs {
+  margin-bottom: 5%;
 }
-.profile-head .nav-tabs .nav-link{
-    font-weight:600;
-    border: none;
+
+.profile-head .nav-tabs .nav-link {
+  font-weight: 600;
+  border: none;
 }
-.profile-head .nav-tabs .nav-link.active{
-    border: none;
-    border-bottom:2px solid #0062cc;
+
+.profile-head .nav-tabs .nav-link.active {
+  border: none;
+  border-bottom: 2px solid #0062cc;
 }
-.profile-work{
-    padding: 14%;
-    margin-top: -15%;
+
+.profile-work {
+  padding: 14%;
+  margin-top: -15%;
 }
-.profile-work p{
-    font-size: 12px;
-    color: #818182;
-    font-weight: 600;
-    margin-top: 10%;
+
+.profile-work p {
+  font-size: 12px;
+  color: #818182;
+  font-weight: 600;
+  margin-top: 10%;
 }
-.profile-work a{
-    text-decoration: none;
-    color: #495057;
-    font-weight: 600;
-    font-size: 14px;
+
+.profile-work a {
+  text-decoration: none;
+  color: #495057;
+  font-weight: 600;
+  font-size: 14px;
 }
-.profile-work ul{
-    list-style: none;
+
+.profile-work ul {
+  list-style: none;
 }
-.profile-tab label{
-    font-weight: 600;
+
+.profile-tab label {
+  font-weight: 600;
 }
-.profile-tab p{
-    font-weight: 600;
-    color: #0062cc;
+
+.profile-tab p {
+  font-weight: 600;
+  color: #0062cc;
 }
 
 /*Sign in button*/
