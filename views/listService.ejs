@@ -12,7 +12,7 @@
           Change Profile Picture
           <form action="/private/profileImageUpload" method="POST" enctype="multipart/form-data">
             <div>
-              <input type="hidden" name="userID" value="<%=userID%>">
+              <input type="hidden" name="userID" value="<%=userRelated.userID%>">
               <input type="file" id="image" name="image" required onchange="form.submit()">
             </div>
             <p><%=imageErroMessage%></p>
@@ -24,17 +24,14 @@
       <div class="profile-head">
         <p>
         <h2>
-          <%=displayName%>
+          <%=userRelated.displayName%>
         </h2>
         <h5>
-          <em><%=profession%></em>
+          <em><%=userRelated.profession%></em>
         </h5>
         </p>
-        <h5>
-          Current listing services (<%=serivceCount%>)
-        </h5>
         <form class="" action="/myposts" method="GET">
-          <input type="hidden" name="userID" value="<%=userID%>">
+          <input type="hidden" name="userID" value="<%=userRelated.userID%>">
           <button class="mt-2 w-100 btn btn-outline-secondary btn-sm" type="Submit">View my services</button>
         </form>
         <a href="/settings" class="mt-1 w-100 btn btn-outline-secondary btn-sm" role="button">Profile Settings</a>
@@ -67,7 +64,7 @@
             <div class="col-md-12">
               <form action="/private/servicePosting" method="POST"">
                 <div>
-                  <input type="hidden" name="userID" value="<%=userID%>">
+                  <input type="hidden" name="userID" value="<%=userRelated.userID%>">
                 <label class="form-label">Service Title:</label>
                 <input type="text" class="w-100 form-control mb-1" name="serviceTitle" required>
                 <label class="mt-1 form-label">Service Details:</label>

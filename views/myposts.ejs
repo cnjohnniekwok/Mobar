@@ -19,13 +19,17 @@
               <% if(!listofService[i].img.contentType) { %>
               <img
                 class="service-image card-img-top img-thumbnail"
-                src="icons/profileDefault.png"
+                src="/icons/profileDefault.png"
                 alt="">
               <% } else {%>
               <img class="service-image card-img-top img-thumbnail" src="data:image/<%=listofService[i].img.contentType%>;base64,<%=listofService[i].img.data.toString('base64')%>" alt="serivce image cap">
               <% } %>
               <div class="card-body">
-                <h5 class="card-title"><%=listofService[i].serviceTitle%></h5>
+                <% if(listofService[i].serviceTitle.length > 25) {%>
+                <h6 class="card-title"><%=listofService[i].serviceTitle.substring(0,25)+ " ..."%> %></h6>
+                <% } else { %>
+                <h6 class="card-title"><%=listofService[i].serviceTitle%></h6>
+                <% } %>
                 <% if(!listofService[i].pay){ %>
                   <h1 class="small">Free<small class="text-muted fw-light">/hr</small></h1>
                 <% } else {%>
@@ -38,7 +42,7 @@
                 <p class="card-text"><%= listofService[i].serviceDetails %></p>
                 <% } %>
                 <div>
-                  <a href="/" class="btn btn-outline-success btn-sm">Read More</a>
+                  <a href="/activeposting/<%=listofService[i]._id %>" class="btn btn-outline-success btn-sm">Read More</a>
                   <a href="" class="btn btn-outline-danger btn-sm"><i class="far fa-heart"></i></a>
                 </div>
                 <small class="mt-1 text-muted">Posted on: <%=listofService[i].createDate.getDate()%>-<%=listofService[i].createDate.getMonth()+1%>-<%=listofService[i].createDate.getFullYear()%></small>

@@ -1,11 +1,5 @@
-html,
 body {
-  height: 100%;
-}
-
-body {
-  padding-top: 40px;
-  padding-bottom: 40px;
+  padding-top: 50px;
   background-color: #FAF3E0;
   font-family: 'Montserrat Alternates', sans-serif;
 }
@@ -89,7 +83,7 @@ body {
   margin-bottom: 5%;
 }
 
-/*Home PAge*/
+/*Home Page*/
 .title-image {
   width: 70%;
 }
@@ -119,11 +113,13 @@ img.service-image {
   object-fit: cover;
 }
 
-.service-card {
+.service-card, .service-card-img-top, .service-card-img-bottom {
   border-radius:20px;
+  margin-bottom: 5px;
 }
 
-.navbar, .service-card{
+
+.navbar, .service-card, .service-card-img-top, .service-card-img-bottom {
     box-shadow: 0 4px 18px 0 rgba(0,0,0,.12), 0 7px 10px -5px rgba(0,0,0,.15) !important;
 }
 
@@ -145,6 +141,17 @@ img.service-image {
     padding-left: 0;
     margin-bottom: 10%
   }
+
+  .service-card-img-top {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    }
+
+  .service-card-img-bottom {
+    margin-top: -2px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    }
 }
 
 @media only screen and (max-width: 375px) {

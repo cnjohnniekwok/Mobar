@@ -4,27 +4,21 @@
     <div class="col-md-4">
       <div class="profile-img">
         <% if(image === "NOIMAGE") { %>
-        <img src="icons/profileDefault.png" alt="">
+        <img src="/icons/profileDefault.png" alt="">
         <% } else {%>
         <img src="data:image/<%=image.img.contentType%>;base64,<%=image.img.data.toString('base64')%>" alt="profile Image" />
         <% } %>
-        <div class="file btn btn-lg btn-primary">
-          Change Profile Picture
-          <form action="/private/profileImageUpload" method="POST" enctype="multipart/form-data">
-            <div>
-              <input type="hidden" name="userID" value="<%=userRelated._id%>">
-              <input type="file" id="image" name="image" required onchange="form.submit()">
-            </div>
-            <p><%=imageErroMessage%></p>
-          </form>
-        </div>
       </div>
     </div>
     <div class="col-md-6">
       <div class="profile-head">
         <p>
         <h2>
-          <%=userRelated.displayName%>
+          <% if(userRelated.displayName){ %>
+            <%=userRelated.displayName%>
+          <% } else { %>
+            <%=userRelated.username%>
+          <% } %>
         </h2>
         <h5>
           <em><%=userRelated.profession%></em>
@@ -33,12 +27,6 @@
         <h5>
           Current listing services (<%=serviceCount%>)
         </h5>
-        <form class="" action="/myposts" method="GET">
-          <input type="hidden" name="userID" value="<%=userRelated._id%>">
-          <button class="mt-2 w-100 btn btn-outline-secondary btn-sm" type="Submit">View my services</button>
-        </form>
-        <a href="/settings" class="mt-1 w-100 btn btn-outline-secondary btn-sm" role="button">Profile Settings</a>
-        <a href="/listService" class="mt-1 w-100 btn btn-outline-secondary btn-sm" role="button">List New Service</a>
       </div>
     </div>
   </div>
@@ -61,40 +49,6 @@
 
       <div class="profile-tab">
         <div class="">
-          <h2 class="mt-2 form-label">Persional Profile</h2>
-          <hr class="mb-4">
-          <div class="row">
-            <div class="col-md-6">
-              <label>User Id</label>
-            </div>
-            <div class="col-md-6">
-              <p><%=userRelated._id%></p>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6">
-              <label>Name</label>
-            </div>
-            <div class="col-md-6">
-              <p><%=userRelated.memberName%></p>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6">
-              <label>Email</label>
-            </div>
-            <div class="col-md-6">
-              <p><%=userRelated.emailAddr%></p>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6">
-              <label>Phone</label>
-            </div>
-            <div class="col-md-6">
-              <p><%=userRelated.phoneNumber%></p>
-            </div>
-          </div>
           <h2 class="mt-2 form-label">Work Profile</h2>
           <hr class="mb-4">
           <div class="row">
@@ -147,23 +101,13 @@
           </div>
           <div class="row">
             <div class="col-md-12">
-              <h2 class="mt-2 form-label">Your Bio</h2>
+              <% if(userRelated.displayName){ %>
+                <h2 class="mt-2 form-label"><%=userRelated.displayName%>'s Bio</h2>
+              <% } else { %>
+                <h2 class="mt-2 form-label"><%=userRelated.username%>'s Bio</h2>
+              <% } %>
               <hr class="mb-4">
               <p><%=userRelated.bio%></p>
-            </div>
-          </div>
-          <h2 class="mt-2 form-label" id="listNewSerivce">List a Serivce</h2>
-          <hr class="mb-4">
-          <div class="row">
-            <div class="col-md-12">
-              <form action="/private/servicePosting" method="POST"">
-                <input type="hidden" name="userID" value="<%=userRelated.id%>">
-                <label class="form-label">Service Title:</label>
-                <input type="text" class="w-100 form-control mb-1" name="serviceTitle" required>
-                <label class="mt-2 form-label">Service Details:</label>
-                <textarea class="form-control" id="exampleFormControlTextarea1" name="serviceDetails" rows="3" required></textarea>
-                <button class="mt-2 btn btn-lg btn-outline-primary" type="Submit">List serivce!</button>
-              </form>
             </div>
           </div>
         </div>

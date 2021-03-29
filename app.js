@@ -49,7 +49,7 @@ app.use(passport.session());
 //reference: https://devcenter.heroku.com/articles/config-vars
 let devMongoDBURI="mongodb://" + process.env.DB_HOST + ":" + process.env.DB_PORT + "/" + process.env.DB_NAME;
 let prdMongoDBURI="mongodb+srv://" + process.env.DB_USER + ":" + process.env.DB_PSWD + "@cluster0.gugxn.mongodb.net/" + process.env.DB_NAME;
-mongoose.connect(prdMongoDBURI, {
+mongoose.connect(devMongoDBURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
@@ -230,12 +230,12 @@ const proxyAgent = new HttpsProxyAgent(process.env.HTTP_PROXY);
 
 // Set proxy agent to OAuth Strategies
 //-----------------------------------------------------------------|
-// googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
-// githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
-// facebookOAuthStrategy._oauth2.setAgent(proxyAgent);
-//
-// // Set Passport to use Strategies
-// //-----------------------------------------------------------------|
+googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
+githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
+facebookOAuthStrategy._oauth2.setAgent(proxyAgent);
+
+// Set Passport to use Strategies
+//-----------------------------------------------------------------|
 passport.use(googleOAuth20Strategy);
 passport.use(githubOAuth20Strategy);
 passport.use(facebookOAuthStrategy);
@@ -319,22 +319,22 @@ function renderSettingPage(req, res, renderMessage){
   }
 }
 
-function renderPrivatePage(ejs, req , res, renderMessage){ //renderMessage can be reanderObjects for multi input
+function renderProfilePage(ejs, req , res, userName){
   if(mongoose.connection.readyState === 1){
-    User.findOne({_id:req.session.passport.user},(err,resultObject)=>{
+    User.findOne({_id: req.params.userID},(err,resultUserObject)=>{
       if(err){
         console.log(err);
       }
       else{
-        if(resultObject){
+        if(resultUserObject){
 
-          ImageModel.findOne({ userID: resultObject._id },(err, resultImage) => {
+          ImageModel.findOne({ userID: req.params.userID },(err, resultImage) => {
             if (err) {
               console.log(err);
               res.status(500).send('An error occurred', err);
             }
 
-            Service.find({ userID: resultObject._id },(err, resultService) => {
+            Service.find({ userID: req.params.userID},(err, resultService) => {
               if (err) {
                 console.log(err);
                 res.status(500).send('An error occurred', err);
@@ -346,27 +346,68 @@ function renderPrivatePage(ejs, req , res, renderMessage){ //renderMessage can b
               if(!imageErroMessage){ imageErroMessage = "";}
               //console.log(resultImage);
 
-              let dropDownListName = resultObject.displayName;
-              if(!dropDownListName){dropDownListName = resultObject.username; }
+              let dropDownListName = resultUserObject.displayName;
+              if(!dropDownListName){dropDownListName = resultUserObject.username; }
+
+              console.log(req.session);
+              res.status(200).render(ejs, {
+                pageTitle: dropDownListName,
+                username: userName, // this is the username for header for current user.
+                authorized: req.isAuthenticated(),
+                image: resultImage,
+                displayName: dropDownListName,
+                userRelated: resultUserObject,
+                serviceCount: resultService.length
+              }); //service
+            }); //render
+          }); //Image
+        }
+      }
+    }); //User
+  }
+  else{
+    res.status(500).redirect("/servererror");
+  }
+}
+
+function renderPrivatePage(ejs, req , res, renderMessage){ //renderMessage can be reanderObjects for multi input
+  if(mongoose.connection.readyState === 1){
+    User.findOne({_id:req.session.passport.user},(err,resultUserObject)=>{
+      if(err){
+        console.log(err);
+      }
+      else{
+        if(resultUserObject){
+
+          ImageModel.findOne({ userID: resultUserObject._id },(err, resultImage) => {
+            if (err) {
+              console.log(err);
+              res.status(500).send('An error occurred', err);
+            }
+
+            Service.find({ userID: resultUserObject._id },(err, resultService) => {
+              if (err) {
+                console.log(err);
+                res.status(500).send('An error occurred', err);
+              }
+
+              if(!resultImage){resultImage = "NOIMAGE";};
+
+              let imageErroMessage = req.body.imageErroMessage;
+              if(!imageErroMessage){ imageErroMessage = "";}
+              //console.log(resultImage);
+
+              let dropDownListName = resultUserObject.displayName;
+              if(!dropDownListName){dropDownListName = resultUserObject.username; }
               res.status(200).render(ejs, {
                 imageErroMessage: renderMessage,
                 pageTitle: dropDownListName,
                 username: dropDownListName,
                 authorized: req.isAuthenticated(),
-                userID: resultObject._id,
                 image: resultImage,
                 displayName: dropDownListName,
-                profession: resultObject.profession,
-                memberName: resultObject.memberName,
-                emailAddr: resultObject.emailAddr,
-                phoneNumber: resultObject.phoneNumber,
-                experience: resultObject.experience,
-                pay: resultObject.pay,
-                projectCount: resultObject.projectCount,
-                language: resultObject.language,
-                availability: resultObject.availability,
-                bio: resultObject.bio,
-                serivceCount: resultService.length
+                userRelated: resultUserObject,
+                serviceCount: resultService.length
               }); //service
             }); //render
           }); //Image
@@ -771,6 +812,17 @@ app.get("/private", (req, res) => {
   } else { res.status(200).redirect("/login"); }
 });
 
+app.get("/profile/:userID", (req, res) => {
+  if (req.isAuthenticated()) {
+    User.findOne({ _id: req.session.passport.user}, (err, resultUser) => {
+      console.log(resultUser.username)
+      renderProfilePage("profile",req, res, resultUser.username);
+    });
+  } else{
+    renderProfilePage("profile",req, res, "");
+  }
+});
+
 app.get("/settings", (req, res) => {
   if (!req.isAuthenticated()) { res.status(200).redirect("/login"); }
   renderSettingPage(req, res, "");
@@ -782,6 +834,7 @@ app.get("/activeposting", (req, res) => {
   renderActivePostingPage("activeposting", req, res, query);
 });
 
+
 app.get("/myposts", (req, res) => {
   if (!req.isAuthenticated()) { res.status(200).redirect("/login"); }
 
@@ -790,6 +843,12 @@ app.get("/myposts", (req, res) => {
   renderActivePostingPage("myposts", req, res, query);
 
 });
+
+app.get("/activeposting/:serviceID", (req, res) => {
+  let query = { _id: req.params.serviceID };
+  renderActivePostingPage("post", req, res, query);
+});
+
 //-----------------------------------------------------------------|
 ////////////////////////////////////////////////////////////////////
 //=================================================================|
