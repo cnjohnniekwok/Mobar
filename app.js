@@ -89,6 +89,7 @@ const userSchema = mongoose.Schema({
   projectCount: String,
   language: String,
   availability: String,
+  bookmarkService: [],
   bio: String,
   pay: String
 });
@@ -241,9 +242,9 @@ const proxyAgent = new HttpsProxyAgent(process.env.HTTP_PROXY);
 
 // Set proxy agent to OAuth Strategies
 //-----------------------------------------------------------------|
-// googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
-// githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
-// facebookOAuthStrategy._oauth2.setAgent(proxyAgent);
+googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
+githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
+facebookOAuthStrategy._oauth2.setAgent(proxyAgent);
 
 // Set Passport to use Strategies
 //-----------------------------------------------------------------|
@@ -462,6 +463,24 @@ function renderAcitvePosting_sub(ejs, res, username, resultobjList, isAuth){
   }); //render
 }
 
+function renderBookmarksPage(ejs, req, res){
+  if(mongoose.connection.readyState === 1){
+    const currentUser = req.session.passport.user;
+    User.findOne({ _id: currentUser}, (err, resultObject) => {
+      if(err){ console.log(err); }
+      else{
+
+          let dropDownListName = resultObject.displayName;
+          if(!dropDownListName){dropDownListName = resultObject.username; }
+
+          Service.find({ _id: resultObject.bookmarkService}, (err, resultServiceObject) =>{
+            renderAcitvePosting_sub("bookmarks", res, dropDownListName, resultServiceObject, req.isAuthenticated())
+          });
+      }
+    });
+  }
+}
+
 function renderActivePostingPage(ejs, req, res, query){
   if(mongoose.connection.readyState === 1){
     if(req.isAuthenticated()) {
@@ -563,7 +582,7 @@ app.post("/private/servicePosting", (req, res) => {
               pay: resultUserObject.pay
             });//ImageModel
 
-            console.log(newService);
+            //console.log(newService);
             Service.create(newService ,(err, item) => {
                 if (err) { console.log(err); }
                 else {
@@ -712,6 +731,48 @@ app.post("/register", (req, res) => {
     res.status(500).redirect("/servererror");
   }
 });
+
+app.post("/bookmarkService", (req, res) =>{
+  if (req.isAuthenticated()) {
+    if(mongoose.connection.readyState === 1){
+      let query = { _id: req.session.passport.user};
+      let update = {$addToSet: {bookmarkService: req.body.likedServiceID}};
+      let options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+      User.findOneAndUpdate(query, update, options ,(err, item) => {
+        if (err) {console.log(err);}
+          else{
+            console.log(item.username);
+            console.log("bookmarked..?");
+          }
+
+        //after everything done
+        res.status(200).redirect("/bookmarks");
+      });
+    }
+  } else { res.status(200).redirect("/login"); }
+});
+
+app.post("/removeBookmarkedService", (req, res) =>{
+  if (req.isAuthenticated()) {
+    if(mongoose.connection.readyState === 1){
+      let query = { _id: req.session.passport.user};
+      let update = {$pullAll: {bookmarkService: [req.body.likedServiceID]}};
+      let options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+      User.findOneAndUpdate(query, update, options ,(err, item) => {
+        if (err) {console.log(err);}
+          else{
+            console.log(item.username);
+            console.log("removed bookmard..?");
+          }
+
+        //after everything done
+        res.status(200).redirect("/bookmarks");
+      });
+    }
+  } else { res.status(200).redirect("/login"); }
+});
 //=================================================================|
 //                      DEMO SITE GET ROUTE
 //-----------------------------------------------------------------|
@@ -853,6 +914,13 @@ app.get("/myposts", (req, res) => {
   let query = { userID: currentUser };
   renderActivePostingPage("myposts", req, res, query);
 
+});
+
+app.get("/bookmarks", (req, res) => {
+  if (!req.isAuthenticated()) { res.status(200).redirect("/login"); }
+  else{
+    renderBookmarksPage("bookmarks", req, res);
+  }
 });
 
 app.get("/activeposting/:serviceID", (req, res) => {
