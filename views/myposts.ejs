@@ -7,7 +7,7 @@
     <p class="lead">Start Now! and list a service!</p>
   </div>
   <div class="form-setting">
-    <form class="" action="/private" method="Get">
+    <form class="" action="/listService" method="Get">
       <button class="w-100 btn btn-lg btn-outline-primary" type="Submit">List a service NOW</button>
     </form>
   </div>
@@ -47,11 +47,11 @@
         <div class="card-footer">
           <form class="" action="/" method="GET">
             <input type="hidden" name="unlistServiceID" value="<%=listofService[i]._id%>">
-            <button class="w-100 btn btn-sm btn-outline-secondary" type="Submit" disabled>Edit service</button>
+            <button class="w-100 btn btn-sm btn-secondary" type="Submit" disabled>Edit service</button>
           </form>
           <form class="" action="/private/serviceUnlisting" method="POST">
             <input type="hidden" name="unlistServiceID" value="<%=listofService[i]._id%>">
-            <button class="mt-1 w-100 btn btn-sm btn-outline-danger" type="Submit">Unlist service</button>
+            <button class="mt-1 w-100 btn btn-sm btn-danger" type="Submit">Unlist service</button>
           </form>
         </div>
       </div>

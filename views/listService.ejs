@@ -12,7 +12,7 @@
           Change Profile Picture
           <form action="/private/profileImageUpload" method="POST" enctype="multipart/form-data">
             <div>
-              <input type="hidden" name="userID" value="<%=userRelated.userID%>">
+              <input type="hidden" name="userID" value="<%=userRelated._id%>">
               <input type="file" id="image" name="image" required onchange="form.submit()">
             </div>
             <p><%=imageErroMessage%></p>
@@ -30,32 +30,18 @@
           <em><%=userRelated.profession%></em>
         </h5>
         </p>
-        <form class="" action="/myposts" method="GET">
-          <input type="hidden" name="userID" value="<%=userRelated.userID%>">
-          <button class="mt-2 w-100 btn btn-outline-secondary btn-sm" type="Submit">View my services</button>
-        </form>
-        <a href="/settings" class="mt-1 w-100 btn btn-outline-secondary btn-sm" role="button">Profile Settings</a>
-        <a href="/listService" class="mt-1 w-100 btn btn-outline-secondary btn-sm" role="button">List New Service</a>
+        <a href="/myposts" class="mt-1 w-100 btn btn-outline-primary btn-sm profile-nav-link" role="Submit">View my services [<%=serviceCount%>]</a>
+        <a href="/bookmarks" class="mt-1 w-100 btn btn-outline-primary btn-sm profile-nav-link" role="button">Bookmarked Services [<%=(userRelated.bookmarkService).length%>]</a>
+        <a href="/settings" class="mt-1 w-100 btn btn-outline-primary btn-sm profile-nav-link"  role="button">Profile Settings</a>
+        <a href="/listService" class="mt-1 w-100 btn btn-primary btn-sm profile-nav-link" role="button">List New Service</a>
       </div>
     </div>
   </div>
   <div class="row">
     <div class="col-md-4">
-      <div class="profile-work">
-        <p>WORK LINK</p>
-        <a href="">Website Link</a><br />
-        <a href="">Bootsnipp Profile</a><br />
-        <a href="">Bootply Profile</a>
-        <p>SKILLS</p>
-        <a href="">Web Designer</a><br />
-        <a href="">Web Developer</a><br />
-        <a href="">WordPress</a><br />
-        <a href="">WooCommerce</a><br />
-        <a href="">PHP, .Net</a><br />
-      </div>
+
     </div>
     <div class="col-md-8">
-
       <div class="profile-tab">
         <div class="">
           <h2 class="mt-2 form-label" id="listNewSerivce">List a Serivce</h2>
@@ -64,7 +50,7 @@
             <div class="col-md-12">
               <form action="/private/servicePosting" method="POST"">
                 <div>
-                  <input type="hidden" name="userID" value="<%=userRelated.userID%>">
+                  <input type="hidden" name="userID" value="<%=userRelated._id%>">
                 <label class="form-label">Service Title:</label>
                 <input type="text" class="w-100 form-control mb-1" name="serviceTitle" required>
                 <label class="mt-1 form-label">Service Details:</label>

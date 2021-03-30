@@ -3,12 +3,12 @@
 
   <% if(listofService.length === 0){ %>
     <div class="starter-template text-center py-5 px-3">
-      <h1>There are no service provider yet ...</h1>
-      <p class="lead">Be the first one to provide! Start Now, and sign up!</p>
+      <h1>There are no bookmarked service yet ...</h1>
+      <p class="lead">See what service are offering out there!</p>
     </div>
     <div class="form-setting">
-      <form class="" action="/register" method="Get">
-        <button class="w-100 btn btn-lg btn-outline-primary" type="Submit">Register NOW</button>
+      <form class="" action="/activePosting" method="Get">
+        <button class="w-100 btn btn-lg btn-outline-primary" type="Submit">Acitve Posting</button>
       </form>
     </div>
     <% } else{ %>
@@ -42,10 +42,10 @@
                   <p class="card-text"><%= listofService[i].serviceDetails %></p>
                   <% } %>
                   <div>
-                    <form action="/bookmarkService" method="Post">
+                    <form action="/removeBookmarkedService" method="Post">
                       <input type="hidden" name="likedServiceID" value="<%=listofService[i]._id%>">
                       <a href="/activeposting/<%=listofService[i]._id %>" class="btn btn-outline-success btn-sm">Read More</a>
-                      <button class="btn btn-outline-danger btn-sm" type="Submit"><i class="far fa-heart"></i></button>
+                      <button class="btn btn-outline-danger btn-sm" type="Submit"><i class="fas fa-heart-broken"></i></button>
                     </form>
                   </div>
                   <small class="mt-1 text-muted">Posted on: <%=listofService[i].createDate.getDate()%>-<%=listofService[i].createDate.getMonth()+1%>-<%=listofService[i].createDate.getFullYear()%></small>
