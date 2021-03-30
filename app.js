@@ -242,9 +242,9 @@ const proxyAgent = new HttpsProxyAgent(process.env.HTTP_PROXY);
 
 // Set proxy agent to OAuth Strategies
 //-----------------------------------------------------------------|
-googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
-githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
-facebookOAuthStrategy._oauth2.setAgent(proxyAgent);
+// googleOAuth20Strategy._oauth2.setAgent(proxyAgent);
+// githubOAuth20Strategy._oauth2.setAgent(proxyAgent);
+// facebookOAuthStrategy._oauth2.setAgent(proxyAgent);
 
 // Set Passport to use Strategies
 //-----------------------------------------------------------------|
