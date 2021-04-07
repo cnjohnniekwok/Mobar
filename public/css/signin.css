@@ -34,6 +34,13 @@ Html, body {
   margin: auto;
 }
 
+.form-multi-signin {
+  width: 100%;
+  max-width: 660px;
+  padding: 15px;
+  margin: auto;
+}
+
 .form-setting {
   width: 100%;
   max-width: 330px;
@@ -120,14 +127,13 @@ Html, body {
 img.service-image {
   background-color: #ffff;
   opacity: 0.9;
-  border-radius: 20px;
-  height: 150px;
+  border-radius: 5px;
+  height: 210px;
   object-fit: cover;
 }
 
 .service-card, .service-card-img-top, .service-card-img-bottom {
-  border-radius: 20px;
-  margin-bottom: 10px;
+  border-radius: 5px;
 }
 
 .navbar, .service-card, .service-card-img-top, .service-card-img-bottom {

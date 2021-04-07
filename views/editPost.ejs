@@ -1,0 +1,68 @@
+<%- include("header"); -%>
+<div class="container emp-profile">
+  <div class="row">
+    <div class="col-md-4">
+      <div class="profile-img">
+        <% if(image === "NOIMAGE") { %>
+        <img src="icons/profileDefault.png" alt="">
+        <% } else {%>
+        <img src="data:image/<%=image.img.contentType%>;base64,<%=image.img.data.toString('base64')%>" alt="profile Image" />
+        <% } %>
+        <div class="file btn btn-lg btn-primary">
+          Change Profile Picture
+          <form action="/private/profileImageUpload" method="POST" enctype="multipart/form-data">
+            <div>
+              <input type="hidden" name="userID" value="<%=userRelated._id%>">
+              <input type="file" id="image" name="image" required onchange="form.submit()">
+            </div>
+            <p><%=imageErroMessage%></p>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="profile-head">
+        <p>
+        <h2>
+          <%=userRelated.displayName%>
+        </h2>
+        <h5>
+          <em><%=userRelated.profession%></em>
+        </h5>
+        </p>
+        <a href="/myposts" class="mt-1 w-100 btn btn-outline-primary btn-sm profile-nav-link" role="Submit">View my services [<%=serviceCount%>]</a>
+        <a href="/bookmarks" class="mt-1 w-100 btn btn-outline-primary btn-sm profile-nav-link" role="button">Bookmarked Services [<%=(userRelated.bookmarkService).length%>]</a>
+        <a href="/settings" class="mt-1 w-100 btn btn-outline-primary btn-sm profile-nav-link"  role="button">Profile Settings</a>
+        <a href="/listService" class="mt-1 w-100 btn btn-primary btn-sm profile-nav-link" role="button">List New Service</a>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-4">
+
+    </div>
+    <div class="col-md-8">
+      <div class="profile-tab">
+        <div class="">
+          <h2 class="mt-2 form-label" id="listNewSerivce">Edit Serivce</h2>
+          <hr class="mb-4">
+          <div class="row">
+            <div class="col-md-12">
+              <form action="/private/editPost" method="POST"">
+                <div>
+                <input type="hidden" name="userID" value="<%=userRelated._id%>">
+                <label class="form-label">Service Title:</label>
+                <input type="hidden" name="listServiceID" value="<%=editService._id%>">
+                <input type="text" class="w-100 form-control mb-1" name="serviceTitle" value="<%= editService.serviceTitle %>" required>
+                <label class="mt-1 form-label">Service Details:</label>
+                <textarea class="form-control" id="exampleFormControlTextarea1" name="serviceDetails" rows="3" required><%= editService.serviceDetails %></textarea>
+                <button class="mt-2 btn btn-lg btn-outline-primary" type="Submit">Update</button>
+              </form>
+            </div>
+          </div>
+        </div> <!-- -->
+      </div><!-- -->
+    </div>
+  </div>
+</div>
+<%- include("footer"); -%>

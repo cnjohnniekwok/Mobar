@@ -305,7 +305,7 @@ function renderSettingPage(req, res, renderMessage){
             }
 
             console.log(renderMessage);
-            res.status(200).render("settings", {
+            res.render("settings", {
               userAlreadyExisted: renderMessage,
               pageTitle: "Profile Settings",
               username: dropDownListName,
@@ -362,7 +362,7 @@ function renderProfilePage(ejs, req , res, userName){
               if(!dropDownListName){dropDownListName = resultUserObject.username; }
 
               console.log(req.session);
-              res.status(200).render(ejs, {
+              res.render(ejs, {
                 pageTitle: dropDownListName,
                 username: userName, // this is the username for header for current user.
                 authorized: req.isAuthenticated(),
@@ -370,6 +370,67 @@ function renderProfilePage(ejs, req , res, userName){
                 displayName: dropDownListName,
                 userRelated: resultUserObject,
                 serviceCount: resultService.length
+              }); //service
+            }); //render
+          }); //Image
+        }
+      }
+    }); //User
+  }
+  else{
+    res.status(500).redirect("/servererror");
+  }
+}
+
+function renderEditPage(ejs, req , res, renderMessage){ //renderMessage can be reanderObjects for multi input
+  if(mongoose.connection.readyState === 1){
+
+    //console.log(req.params.serviceID);
+    User.findOne({_id:req.session.passport.user},(err,resultUserObject)=>{
+      if(err){
+        console.log(err);
+      }
+      else{
+        if(resultUserObject){
+
+          ImageModel.findOne({ userID: resultUserObject._id },(err, resultImage) => {
+            if (err) {
+              console.log(err);
+              res.status(500).send('An error occurred', err);
+            }
+
+            Service.find({ userID: resultUserObject._id },(err, resultService) => {
+              if (err) {
+                console.log(err);
+                res.status(500).send('An error occurred', err);
+              }
+
+              if(!resultImage){resultImage = "NOIMAGE";};
+
+              let imageErroMessage = req.body.imageErroMessage;
+              if(!imageErroMessage){ imageErroMessage = "";}
+              //console.log(resultImage);
+
+              let editService = {}
+              for(let i = 0; i < resultService.length; i++ ){
+                if(resultService[i]._id == req.params.serviceID){
+                  editService = resultService[i];
+                  break;
+                }
+              }
+
+              let dropDownListName = resultUserObject.displayName;
+              if(!dropDownListName){dropDownListName = resultUserObject.username; }
+              res.render(ejs, {
+                imageErroMessage: renderMessage,
+                pageTitle: dropDownListName,
+                username: dropDownListName,
+                authorized: req.isAuthenticated(),
+                image: resultImage,
+                displayName: dropDownListName,
+                userRelated: resultUserObject,
+                serviceCount: resultService.length,
+                editService: editService
               }); //service
             }); //render
           }); //Image
@@ -411,7 +472,7 @@ function renderPrivatePage(ejs, req , res, renderMessage){ //renderMessage can b
 
               let dropDownListName = resultUserObject.displayName;
               if(!dropDownListName){dropDownListName = resultUserObject.username; }
-              res.status(200).render(ejs, {
+              res.render(ejs, {
                 imageErroMessage: renderMessage,
                 pageTitle: dropDownListName,
                 username: dropDownListName,
@@ -442,7 +503,7 @@ function renderHomePage(req, res){
         if(resultObject){
           let dropDownListName = resultObject.displayName;
           if(!dropDownListName){dropDownListName = resultObject.username; }
-          res.status(200).render("home", {
+          res.render("home", {
             userAlreadyExisted: "",
             pageTitle: "Mo.Co.",
             username: dropDownListName,
@@ -455,7 +516,7 @@ function renderHomePage(req, res){
 }
 
 function renderAcitvePosting_sub(ejs, res, username, resultobjList, isAuth){
-  res.status(200).render(ejs, {
+  res.render(ejs, {
     pageTitle: "Posting",
     username: username,
     listofService: resultobjList,
@@ -510,7 +571,7 @@ function renderActivePostingPage(ejs, req, res, query){
 }
 
 function renderLoginPage(req, res, renderMessage){
-  res.status(200).render("login", {
+  res.render("login", {
     userAlreadyExisted: renderMessage,
     pageTitle: "Login Page",
     username: "",
@@ -519,7 +580,7 @@ function renderLoginPage(req, res, renderMessage){
 }
 
 function renderRegisterPage(req, res, renderMessage){
-  res.status(200).render("register", {
+  res.render("register", {
     userAlreadyExisted: renderMessage,
     pageTitle: "Registration",
     username: "",
@@ -551,7 +612,7 @@ app.post("/private/serviceUnlisting", (req, res) => {
     else{
 
       console.log("Post (" + req.body.unlistServiceID + ") deleted.");
-      res.status(200).redirect("/myposts");
+      res.redirect("/myposts");
     }
   }); //service
 });
@@ -587,8 +648,8 @@ app.post("/private/servicePosting", (req, res) => {
                 if (err) { console.log(err); }
                 else {
                     //show something to user that the service is posted.
-                    console.log("Service posted -: " + req.body.userID);
-                    res.status(200).redirect('/myposts');
+                    //console.log("Service posted -: " + req.body.userID);
+                    res.redirect('/myposts');
                 }
               });//Service
           }
@@ -612,7 +673,7 @@ app.post("/private/profileImageUpload", upload.single('image'), (req, res, next)
 
           console.log(err);
           fs.unlinkSync(imagePath);
-          res.status(200).redirect('/private');
+          res.redirect('/private');
       }
       else {
 
@@ -621,12 +682,29 @@ app.post("/private/profileImageUpload", upload.single('image'), (req, res, next)
             if(err){ console.log(err);}
             else{
               fs.unlinkSync(imagePath);
-              res.status(200).redirect('/private');
+              res.redirect('/private');
               console.log("image at service posting updated.");
             }
           }); //Service
       }
     }); //ImageModel
+});
+
+
+app.post("/private/editPost", (req, res, next) => {
+  let query = { _id: req.body.listServiceID };
+  let update = { $set: req.body };
+  let options = { upsert: true, new: true, setDefaultsOnInsert: true };
+
+  Service.findOneAndUpdate(query, update, options ,(err) => {
+      if (err) {
+          console.log(err);
+          res.redirect('/editPost');
+      }
+      else {
+        res.redirect('/myPosts');
+      }
+    }); //Service
 });
 
 app.post("/settings/account", (req, res)=>{
@@ -643,7 +721,7 @@ app.post("/settings/account", (req, res)=>{
        Service.updateMany({ userID: req.session.passport.user }, update, { upsert: false } , (err) => {
          if(err){ console.log(err);}
          else{
-            res.status(200).redirect("/private");
+            res.redirect("/private");
          }
        }); //Service
      }
@@ -707,7 +785,7 @@ app.post("/login", (req, res, next) => {
             if(req.body.remember){
               req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; } // Cookie expires after 30 days
             else { req.session.cookie.expires = false; } // Cookie expires at end of session
-            return res.status(200).redirect("/private");
+            return res.redirect("/private");
           }
         });
       }
@@ -723,7 +801,7 @@ app.post("/register", (req, res) => {
         renderRegisterPage(req, res, "Email already in use.");
       }
       else{
-        passport.authenticate("local")(req, res, () => { res.status(200).redirect("/private"); });
+        passport.authenticate("local")(req, res, () => { res.redirect("/private"); });
       }
     });
   }
@@ -742,15 +820,15 @@ app.post("/bookmarkService", (req, res) =>{
       User.findOneAndUpdate(query, update, options ,(err, item) => {
         if (err) {console.log(err);}
           else{
-            console.log(item.username);
-            console.log("bookmarked..?");
+            // console.log(item.username);
+            // console.log("bookmarked..?");
           }
 
         //after everything done
-        res.status(200).redirect("/bookmarks");
+        res.redirect("/bookmarks");
       });
     }
-  } else { res.status(200).redirect("/login"); }
+  } else { res.redirect("/login"); }
 });
 
 app.post("/removeBookmarkedService", (req, res) =>{
@@ -763,15 +841,15 @@ app.post("/removeBookmarkedService", (req, res) =>{
       User.findOneAndUpdate(query, update, options ,(err, item) => {
         if (err) {console.log(err);}
           else{
-            console.log(item.username);
-            console.log("removed bookmard..?");
+            //console.log(item.username);
+            //console.log("removed bookmard..?");
           }
 
         //after everything done
-        res.status(200).redirect("/bookmarks");
+        res.redirect("/bookmarks");
       });
     }
-  } else { res.status(200).redirect("/login"); }
+  } else { res.redirect("/login"); }
 });
 //=================================================================|
 //                      DEMO SITE GET ROUTE
@@ -782,7 +860,7 @@ app.post("/removeBookmarkedService", (req, res) =>{
 //                      ENTERY POINT
 //-----------------------------------------------------------------|
 app.get("/", (req, res) => {
-  res.status(200).redirect("/home");
+  res.redirect("/home");
 });
 
 app.get("/home", (req, res) => {
@@ -790,7 +868,7 @@ app.get("/home", (req, res) => {
     renderHomePage(req, res);
   }
   else{
-    res.status(200).render("home", {
+    res.render("home", {
       pageTitle: "Mo.Co.",
       username: "",
       authorized: req.isAuthenticated()
@@ -803,12 +881,12 @@ app.get("/home", (req, res) => {
 //                      SERVER AUTHENICATION
 //-----------------------------------------------------------------|
 app.get("/register", (req, res) => {
-  if (req.isAuthenticated()) { res.status(200).redirect("/private"); }
+  if (req.isAuthenticated()) { res.redirect("/private"); }
   else {renderRegisterPage(req, res, ""); }
 });
 
 app.get("/login", (req, res) => {
-  if (req.isAuthenticated()) { res.status(200).redirect("/private"); }
+  if (req.isAuthenticated()) { res.redirect("/private"); }
   else {renderLoginPage(req, res, ""); }
 });
 
@@ -832,7 +910,7 @@ app.get("/auth/google",
 // Google OAuth callback
 app.get("/auth/google/private",
   passport.authenticate('google', { failureRedirect: "/login"}),
-    (req, res) => { res.status(200).redirect('/private'); });
+    (req, res) => { res.redirect('/private'); });
     //If OAuth success, bring them to private page.
 
 //-----------------------------------------------------------------|
@@ -847,7 +925,7 @@ app.get("/auth/github",
 // Github OAuth callback
 app.get("/auth/github/private",
   passport.authenticate('github', { failureRedirect: "/login"}),
-    (req, res) => { res.status(200).redirect('/private'); });
+    (req, res) => { res.redirect('/private'); });
     //If OAuth success, bring them to private page.
 
 //-----------------------------------------------------------------|
@@ -862,7 +940,7 @@ app.get("/auth/facebook",
 // Github OAuth callback
 app.get("/auth/facebook/private",
   passport.authenticate("facebook", { failureRedirect: "/login"}),
-    (req, res) => { res.status(200).redirect('/private'); });
+    (req, res) => { res.redirect('/private'); });
     //If OAuth success, bring them to private page.
 
 //-----------------------------------------------------------------|
@@ -875,13 +953,23 @@ app.get("/auth/facebook/private",
 app.get("/listService", (req, res) => {
   if (req.isAuthenticated()) {
     renderPrivatePage("listService", req , res, "")
-  } else { res.status(200).redirect("/login"); }
+  } else { res.redirect("/login"); }
 });
 
 app.get("/private", (req, res) => {
   if (req.isAuthenticated()) {
     renderPrivatePage("private",req, res, "");
-  } else { res.status(200).redirect("/login"); }
+  } else { res.redirect("/login"); }
+});
+
+
+app.get("/editPost/:serviceID", (req, res) => {
+  if (!req.isAuthenticated()) { res.redirect("/login"); }
+
+  const currentUser = req.session.passport.user;
+  let query = { userID: currentUser };
+  renderEditPage("editPost", req , res, "")
+
 });
 
 app.get("/profile/:userID", (req, res) => {
@@ -896,7 +984,7 @@ app.get("/profile/:userID", (req, res) => {
 });
 
 app.get("/settings", (req, res) => {
-  if (!req.isAuthenticated()) { res.status(200).redirect("/login"); }
+  if (!req.isAuthenticated()) { res.redirect("/login"); }
   renderSettingPage(req, res, "");
 
 });
@@ -908,7 +996,7 @@ app.get("/activeposting", (req, res) => {
 
 
 app.get("/myposts", (req, res) => {
-  if (!req.isAuthenticated()) { res.status(200).redirect("/login"); }
+  if (!req.isAuthenticated()) { res.redirect("/login"); }
 
   const currentUser = req.session.passport.user;
   let query = { userID: currentUser };
@@ -917,7 +1005,7 @@ app.get("/myposts", (req, res) => {
 });
 
 app.get("/bookmarks", (req, res) => {
-  if (!req.isAuthenticated()) { res.status(200).redirect("/login"); }
+  if (!req.isAuthenticated()) { res.redirect("/login"); }
   else{
     renderBookmarksPage("bookmarks", req, res);
   }

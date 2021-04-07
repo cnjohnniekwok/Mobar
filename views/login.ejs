@@ -1,41 +1,60 @@
 <%- include("header"); -%>
-<main class="form-signin text-center">
-  <form class="" action="/login" method="post">
-    <!-- <img class="mb-4" src="/docs/5.0/assets/brand/bootstrap-logo.svg" alt="" width="72" height="57"> -->
-    <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
-    <label for="inputEmail" class="visually-hidden">Email address</label>
-    <input type="email" id="inputEmail" name="username" class="form-control login-email" placeholder="Email address" required autofocus>
-    <label for="inputPassword" class="visually-hidden">Password</label>
-    <input type="password" id="inputPassword login-pwd" name="password" class="form-control" placeholder="Password" required>
-    <p class="warn-text"><%= userAlreadyExisted %></p>
-    <div class="checkbox mb-3">
-      <label>
-        <input type="checkbox" name="remember" value="remember"> Remember me
-      </label>
+<main class="form-multi-signin">
+  <div class="row">
+    <div class="col-md-6 text-center">
+      <ul class="list-group">
+        <li class="list-group-item">
+          <h1 class="h3 mb-3 pt-3 fw-normal">Please sign in</h1>
+          <hr/>
+          <form class="" action="/login" method="post">
+            <!-- <img class="mb-4" src="/docs/5.0/assets/brand/bootstrap-logo.svg" alt="" width="72" height="57"> -->
+            <label for="inputEmail" class="visually-hidden">Email address</label>
+            <input type="email" id="inputEmail" name="username" class="form-control login-email" placeholder="Email address" required autofocus>
+            <label for="inputPassword" class="visually-hidden">Password</label>
+            <input type="password" id="inputPassword login-pwd" name="password" class="form-control" placeholder="Password" required>
+            <p class="warn-text"><%= userAlreadyExisted %></p>
+            <div class="checkbox mb-3">
+              <label>
+                <input type="checkbox" name="remember" value="remember"> Remember me
+              </label>
+            </div>
+            <hr>
+            <div class="col-sm">
+              <button class="w-100 btn btn-lg btn-outline-primary" type="submit">Sign in</button>
+            </div>
+          </form>
+        </li>
+        <li class="list-group-item">
+          OR <a href="/register">Register</a>
+        </li>
+      </ul>
     </div>
 
-    <div class="col-sm">
-      <div class="card">
-        <div class="card-body">
-          <button class="w-100 btn btn-lg btn-outline-primary" type="submit">Sign in</button>
-          <hr>
-          <!-- Google Sign in -->
-          <a class="w-100 btn btn-lg btn-social btn-google" href="/auth/google" role="button">
-            <i class="fab fa-google"></i>
-            Sign In with Google
-          </a>
+    <div class="col-md-6 text-center">
+      <ul class="list-group">
+        <li class="list-group-item">
+            <h1 class="h3 mb-3 pt-3 fw-normal">Sign in with:</h1>
+            <hr/>
+            <!-- Google Sign in -->
+            <a href="/auth/google" role="button">
+              <img src="./icons/btn_google_signin_dark_normal_web@2x.png" class="img-fluid" alt="Google Sign in"/>
+            </a>
+          </li>
+          <li class="list-group-item">
           <!-- GitHub Sign in -->
           <a class="mt-2 w-100 btn btn-lg btn-social btn-github" href="/auth/github" role="button">
             <i class="fab fa-github"></i>
             Sign In with GitHub
           </a>
+          </li>
+          <li class="list-group-item">
           <!-- Facebook Sign in -->
-          <a class="mt-2 w-100 btn btn-lg btn-social btn-facebook" href="/auth/facebook" role="button">
-            <i class="fab fa-facebook"></i>
-            Sign In with Facebook
+          <a href="/auth/facebook" role="button">
+            <img src="./icons/btn_facebook_signin.png" class="img-fluid" alt="Facebook Sign in"/>
           </a>
-        </div>
-      </div>
-  </form>
+        </li>
+      </lu>
+    </div>
+  </div>
 </main>
 <%- include("footer"); -%>

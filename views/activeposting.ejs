@@ -14,49 +14,58 @@
     <% } else{ %>
       <div class="row">
           <% for (let i = listofService.length - 1; i >= 0; i--){%>
-            <div class="col-lg-3 col-md-4">
-              <div class="card service-card">
+            <div class="col-md-4">
+            <ul class="list-group">
+              <li class="list-group-item">
                 <% if(!listofService[i].img.contentType) { %>
                 <img
                   class="service-image card-img-top img-thumbnail"
                   src="/icons/profileDefault.png"
                   alt="">
                 <% } else {%>
-                <img class="service-image card-img-top img-thumbnail" src="data:image/<%=listofService[i].img.contentType%>;base64,<%=listofService[i].img.data.toString('base64')%>" alt="serivce image cap">
+                <img
+                  class="service-image card-img-top img-thumbnail"
+                  src="data:image/<%=listofService[i].img.contentType%>;base64,<%=listofService[i].img.data.toString('base64')%>"
+                  alt="serivce image cap">
                 <% } %>
-                <div class="card-body">
-                  <% if(listofService[i].serviceTitle.length > 25) {%>
-                  <h6 class="card-title"><%=listofService[i].serviceTitle.substring(0,25)+ " ..."%> %></h6>
-                  <% } else { %>
-                  <h6 class="card-title"><%=listofService[i].serviceTitle%></h6>
-                  <% } %>
-                  <% if(!listofService[i].pay){ %>
-                    <h1 class="small">Free<small class="text-muted fw-light">/hr</small></h1>
-                  <% } else {%>
-                    <h1 class="small"><%=listofService[i].pay%><small class="text-muted fw-light">/hr</small></h1>
-                  <% } %>
-                  <hr class="mb-4">
-                  <% if(listofService[i].serviceDetails.length > 100) {%>
-                  <p class="card-text"><%=(listofService[i].serviceDetails).substring(0,100) + " ..."%></p>
-                  <% } else { %>
-                  <p class="card-text"><%= listofService[i].serviceDetails %></p>
-                  <% } %>
-                  <div>
-                    <form action="/bookmarkService" method="Post">
-                      <input type="hidden" name="likedServiceID" value="<%=listofService[i]._id%>">
-                      <a href="/activeposting/<%=listofService[i]._id %>" class="btn btn-outline-success btn-sm">Read More</a>
-                      <button class="btn btn-outline-danger btn-sm" type="Submit"><i class="far fa-heart"></i></button>
-                    </form>
-                  </div>
-                  <small class="mt-1 text-muted">Posted on: <%=listofService[i].createDate.getDate()%>-<%=listofService[i].createDate.getMonth()+1%>-<%=listofService[i].createDate.getFullYear()%></small>
-                </div>
-                <div class="card-footer">
-                  <form class="" action="/" method="GET">
-                    <input type="hidden" name="unlistServiceID" value="<%=listofService[i]._id%>">
-                    <button class="w-100 btn btn-sm btn-primary" type="Submit" disabled>Pick this service</button>
-                  </form>
-                </div>
-              </div>
+              </li>
+            </ul>
+            </div>
+            <div class="col-md-8">
+            <ul class="list-group">
+              <li class="list-group-item">
+                <% if(listofService[i].serviceTitle.length > 100) {%>
+                <h6 class="card-title"><%=listofService[i].serviceTitle.substring(0,100)+ " ..."%> %></h6>
+                <% } else { %>
+                <h6 class="card-title"><%=listofService[i].serviceTitle%></h6>
+                <% } %>
+              </li>
+              <li class="list-group-item">
+                <small class="mt-1 text-muted">Posted on: <%=listofService[i].createDate.getDate()%>-<%=listofService[i].createDate.getMonth()+1%>-<%=listofService[i].createDate.getFullYear()%></small>
+                <% if(listofService[i].serviceDetails.length > 150) {%>
+                <p class="card-text"><%=(listofService[i].serviceDetails).substring(0,150) + " ..."%></p>
+                <% } else { %>
+                <p class="card-text"><%= listofService[i].serviceDetails %></p>
+                <% } %>
+                <form action="/bookmarkService" method="Post">
+                  <input type="hidden" name="likedServiceID" value="<%=listofService[i]._id%>">
+                  <a href="/activeposting/<%=listofService[i]._id %>" class="btn btn-outline-success btn-sm">Read More</a>
+                  <button class="btn btn-outline-danger btn-sm" type="Submit"><i class="far fa-heart"></i></button>
+                </form>
+              </li>
+              <li class="list-group-item">
+                <% if(!listofService[i].pay){ %>
+                  <h1 class="small">Free<small class="text-muted fw-light">/hr</small></h1>
+                <% } else {%>
+                  <h1 class="small"><%=listofService[i].pay%><small class="text-muted fw-light">/hr</small></h1>
+                <% } %>
+
+                <form class="" action="/" method="GET">
+                  <input type="hidden" name="unlistServiceID" value="<%=listofService[i]._id%>">
+                  <button class="w-100 btn btn-sm btn-primary" type="Submit" disabled>Pick this service</button>
+                </form>
+              </li>
+            </ul>
             </div>
           <% } %>
       </div>
